@@ -22,20 +22,46 @@
 
 #include "JsonRpc.hpp"
 
+#include <cassert>
 #include <cstdlib>
 #include <iostream>
 
 using namespace nmcrpc;
 
 int
-main (int argc, char** argv)
+main ()
 {
   JsonRpc rpc ("localhost", 8336, "daniel", "password");
 
-  unsigned code;
-  std::cout << rpc.queryHttp ("foobar", code) << "\n\n";
+  JsonRpc::JsonData res = rpc.executeRpc ("getinfo");
+  assert (res.isObject ());
+  std::cout << "Running version: " << res["version"].asInt () << std::endl;
 
-  std::cout << "Code: " << code << "\n";
+  res = rpc.executeRpc ("name_show", "id/domob");
+  assert (res.isObject ());
+  assert (res["name"].asString () == "id/domob");
+  assert (res["value"].isString ());
+  assert (res["expires_in"].isInt ());
+
+  try
+    {
+      rpc.executeRpc ("method-does-not-exist", 5, "");
+      assert (false);
+    }
+  catch (const JsonRpc::RpcError& err)
+    {
+      assert (err.getErrorCode () == -32601);
+    }
+
+  try
+    {
+      rpc.executeRpc ("name_history", "name-does-not-exist");
+      assert (false);
+    }
+  catch (const JsonRpc::RpcError& err)
+    {
+      assert (err.getErrorCode () == -4);
+    }
 
   return EXIT_SUCCESS;
 }

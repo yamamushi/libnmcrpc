@@ -21,6 +21,8 @@
 #ifndef NMCRPC_JSONRPC_HPP
 #define NMCRPC_JSONRPC_HPP
 
+#include <json/value.h>
+
 #include <stdexcept>
 #include <string>
 
@@ -42,12 +44,12 @@ public:
 
   /* Exception classes thrown for different errors.  */
   class Exception;
+  class JsonParseError;
   class HttpError;
   class RpcError;
 
-  /** Type of JSON data returned.  This is a Boost property-tree.  */
-  // TODO: JSON data type.
-  typedef int JsonData;
+  /** Type of JSON data returned.  */
+  typedef Json::Value JsonData;
 
 private:
 
@@ -73,8 +75,6 @@ private:
    * @return The response body.
    * @throws Exception if some error occurs.
    */
-// FIXME
-public:
   std::string queryHttp (const std::string& query, unsigned& responseCode);
 
 public:
@@ -95,86 +95,84 @@ public:
 
   // We want no default constructor or copying.
   JsonRpc () = delete;
-  JsonRpc (const JsonRpc& o) = delete;
-  JsonRpc& operator= (const JsonRpc& o) = delete;
+  JsonRpc (const JsonRpc&) = delete;
+  JsonRpc& operator= (const JsonRpc&) = delete;
 
   /**
    * Decode JSON from a string.
    * @param str JSON string.
    * @returns The parsed JSON data.
-   * @throws json_parser_error in case of parsing errors.
+   * @throws JsonParseError in case of parsing errors.
    */
-  static inline JsonData
-  decodeJson (const std::string& str)
-  {
-    // TODO: Implement.
-    return -1;
-  }
+  static JsonData decodeJson (const std::string& str);
 
   /**
    * Encode JSON to a string.
    * @param data The JSON data.
    * @return The encoded JSON as string.
    */
-  static inline std::string
-  encodeJson (const JsonData& data)
-  {
-    // TODO: Implement.
-    return "";
-  }
+  static std::string encodeJson (const JsonData& data);
+
+  /**
+   * Perform a JSON-RPC query with arbitrary parameter list.
+   * @param method The method name to call.
+   * @param params Parameter list as single Json::Value containing an array.
+   * @return Result of the query.
+   * @throws Exception in case of error.
+   * @throws RpcError if the RPC call returns an error.
+   */
+  JsonData executeRpcArray (const std::string& method, const JsonData& params);
 
   /**
    * Perform a JSON-RPC query with arbitrary parameter list.
    * @param method The method name to call.
    * @param params Iterable list of parameters to pass.
-   * @return Result of the query as string.
+   * @return Result of the query.
    * @throws Exception in case of error.
    * @throws RpcError if the RPC call returns an error.
    */
   template<typename L>
-    std::string executeRpcList (const std::string& method, const L& params);
+    JsonData executeRpcList (const std::string& method, const L& params);
 
   /* Utility methods to call RPC methods with small number of parameters.  */
 
-  /*
-  inline std::string
+  inline JsonData
   executeRpc (const std::string& method)
   {
-    std::vector<std::string> params;
+    std::vector<JsonData> params;
     return executeRpcList (method, params);
   }
 
   template<typename T>
-    inline std::string
+    inline JsonData
     executeRpc (const std::string& method, const T& p1)
   {
-    std::vector<std::string> params;
-    params.push_back (boost::lexical_cast<std::string> (p1));
+    std::vector<JsonData> params;
+    params.push_back (JsonData(p1));
     return executeRpcList (method, params);
   }
 
   template<typename S, typename T>
-    inline std::string
+    inline JsonData
     executeRpc (const std::string& method, const S& p1, const T& p2)
   {
-    std::vector<std::string> params;
-    params.push_back (boost::lexical_cast<std::string> (p1));
-    params.push_back (boost::lexical_cast<std::string> (p2));
+    std::vector<JsonData> params;
+    params.push_back (JsonData(p1));
+    params.push_back (JsonData(p2));
     return executeRpcList (method, params);
   }
 
   template<typename R, typename S, typename T>
-    inline std::string
+    inline JsonData
     executeRpc (const std::string& method,
                 const R& p1, const S& p2, const T& p3)
   {
-    std::vector<std::string> params;
-    params.push_back (boost::lexical_cast<std::string> (p1));
-    params.push_back (boost::lexical_cast<std::string> (p2));
-    params.push_back (boost::lexical_cast<std::string> (p3));
+    std::vector<JsonData> params;
+    params.push_back (JsonData(p1));
+    params.push_back (JsonData(p2));
+    params.push_back (JsonData(p3));
     return executeRpcList (method, params);
   }
-  */
 
 };
 
@@ -201,8 +199,33 @@ public:
 
   /* No default constructor, but copying ok.  */
   Exception () = delete;
-  Exception (const Exception& o) = default;
-  Exception& operator= (const Exception& o) = default;
+  Exception (const Exception&) = default;
+  Exception& operator= (const Exception&) = default;
+
+};
+
+/**
+ * Error parsing JSON.
+ */
+class JsonRpc::JsonParseError : public JsonRpc::Exception
+{
+
+public:
+
+  /**
+   * Construct it just with an error message.
+   * @param msg Error message.
+   */
+  explicit inline JsonParseError (const std::string& msg)
+    : Exception(msg)
+  {
+    // Nothing else to do.
+  }
+
+  /* No default constructor, but copying ok.  */
+  JsonParseError () = delete;
+  JsonParseError (const JsonParseError&) = default;
+  JsonParseError& operator= (const JsonParseError&) = default;
 
 };
 
@@ -232,8 +255,8 @@ public:
 
   /* Default copying, no default constructor.  */
   HttpError () = delete;
-  HttpError (const HttpError& o) = default;
-  HttpError& operator= (const HttpError& o) = default;
+  HttpError (const HttpError&) = default;
+  HttpError& operator= (const HttpError&) = default;
 
   /**
    * Query HTTP response code.
@@ -269,17 +292,16 @@ public:
    */
   explicit inline
   RpcError (const JsonData& data)
-    : Exception("RPC returned an error response.")
+    : Exception("RPC returned an error response."),
+      code(data["code"].asInt ()), message(data["message"].asString ())
   {
-    // TODO: Implement based on JsonData.
-    code = -1;
-    message = "";
+    // Nothing else to do.
   }
 
   /* No default constructor but copying allowed.  */
   RpcError () = delete;
-  RpcError (const RpcError& o) = default;
-  RpcError& operator= (const RpcError& o) = default;
+  RpcError (const RpcError&) = default;
+  RpcError& operator= (const RpcError&) = default;
 
   /**
    * Get the error code.

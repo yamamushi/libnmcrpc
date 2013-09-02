@@ -22,6 +22,9 @@
 
 #include "JsonRpc.hpp"
 
+#include <json/reader.h>
+#include <json/writer.h>
+
 #include <curl/curl.h>
 
 #include <cassert>
@@ -237,6 +240,82 @@ JsonRpc::queryHttp (const std::string& query, unsigned& responseCode)
 
   responseCode = poster.getResponseCode ();
   return poster.getResponseBody ();
+}
+
+/**
+ * Decode JSON from a string.
+ * @param str JSON string.
+ * @returns The parsed JSON data.
+ * @throws JsonParseError in case of parsing errors.
+ */
+JsonRpc::JsonData
+JsonRpc::decodeJson (const std::string& str)
+{
+  Json::Reader parser;
+  Json::Value root;
+
+  const bool success = parser.parse (str, root);
+  if (!success)
+    throw JsonParseError ("Error decoding the JSON value.");
+
+  return root;
+}
+
+/**
+ * Encode JSON to a string.
+ * @param data The JSON data.
+ * @return The encoded JSON as string.
+ */
+std::string
+JsonRpc::encodeJson (const JsonData& data)
+{
+  Json::FastWriter writer;
+  return writer.write (data);
+}
+
+/**
+ * Perform a JSON-RPC query with arbitrary parameter list.
+ * @param method The method name to call.
+ * @param params Parameter list as single Json::Value containing an array.
+ * @return Result of the query.
+ * @throws Exception in case of error.
+ * @throws RpcError if the RPC call returns an error.
+ */
+JsonRpc::JsonData
+JsonRpc::executeRpcArray (const std::string& method, const JsonData& params)
+{
+  JsonData query(Json::objectValue);
+  const int id = nextId++;
+
+  query["id"] = id;
+  query["method"] = method;
+  query["params"] = params;
+  const std::string queryStr = encodeJson (query);
+
+  unsigned respCode;
+  const std::string responseStr = queryHttp (queryStr, respCode);
+
+  switch (respCode)
+    {
+    case 200:
+    case 401:
+    case 404:
+    case 500:
+      break;
+
+    default:
+      throw HttpError ("Invalid HTTP status code returned.", respCode);
+    }
+
+  const JsonData response = decodeJson (responseStr);
+  if (response["id"].asInt () != id)
+    throw Exception ("IDs don't match for JSON-RPC response.");
+
+  const JsonData& result = response["result"];
+  const JsonData& error = response["error"];
+  if (!error.isNull ())
+    throw RpcError (error);
+  return result;
 }
 
 } // namespace nmcrpc

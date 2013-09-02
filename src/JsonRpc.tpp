@@ -27,14 +27,17 @@
  * Perform a JSON-RPC query with arbitrary parameter list.
  * @param method The method name to call.
  * @param params Iterable list of parameters to pass.
- * @return Result of the query as string.
+ * @return Result of the query.
  * @throws Exception in case of error.
  * @throws RpcError if the RPC call returns an error.
  */
 template<typename L>
-  std::string
+  JsonRpc::JsonData
   JsonRpc::executeRpcList (const std::string& method, const L& params)
 {
-  /* FIXME: To implement.  */
-  return "";
+  JsonData arr(Json::arrayValue);
+  for (const auto& elem : params)
+    arr.append (JsonData(elem));
+
+  return executeRpcArray (method, arr);
 }
