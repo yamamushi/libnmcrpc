@@ -73,6 +73,8 @@ private:
    * @return The response body.
    * @throws Exception if some error occurs.
    */
+// FIXME
+public:
   std::string queryHttp (const std::string& query, unsigned& responseCode);
 
 public:
