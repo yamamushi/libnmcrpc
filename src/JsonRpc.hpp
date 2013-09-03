@@ -21,6 +21,8 @@
 #ifndef NMCRPC_JSONRPC_HPP
 #define NMCRPC_JSONRPC_HPP
 
+#include "RpcSettings.hpp"
+
 #include <json/value.h>
 
 #include <stdexcept>
@@ -53,14 +55,8 @@ public:
 
 private:
 
-  /** Connection host.  */
-  std::string host;
-  /** Connection port.  */
-  unsigned port;
-  /** Connection authentication username.  */
-  std::string username;
-  /** Connection authentication password.  */
-  std::string password;
+  /** Connection settings.  */
+  RpcSettings settings;
 
   /** The next ID to use for JSON-RPC queries.  */
   unsigned nextId;
@@ -81,14 +77,10 @@ public:
 
   /**
    * Construct for the given connection data.
-   * @param h The connection host.
-   * @param p The connection port.
-   * @param u The user name.
-   * @param pwd The password.
+   * @param s Settings to use for the connection.  They are copied.
    */
-  inline JsonRpc (const std::string& h, unsigned p,
-                  const std::string& u, const std::string& pwd)
-    : host(h), port(p), username(u), password(pwd), nextId(0)
+  explicit inline JsonRpc (const RpcSettings& s)
+    : settings(s), nextId(0)
   {
     // Nothing more to be done.
   }

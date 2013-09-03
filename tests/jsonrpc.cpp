@@ -31,7 +31,10 @@ using namespace nmcrpc;
 int
 main ()
 {
-  JsonRpc rpc ("localhost", 8336, "daniel", "password");
+  RpcSettings settings;
+  settings.setUsername ("daniel");
+  settings.setPassword ("password");
+  JsonRpc rpc (settings);
 
   JsonRpc::JsonData res = rpc.executeRpc ("getinfo");
   assert (res.isObject ());

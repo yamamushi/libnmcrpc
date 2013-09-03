@@ -236,7 +236,8 @@ JsonRpc::queryHttp (const std::string& query, unsigned& responseCode)
   poster.addHeader ("Content-Type", "application/json");
   poster.addHeader ("Accept", "application/json");
 
-  poster.perform (host, port, username, password);
+  poster.perform (settings.getHost (), settings.getPort (),
+                  settings.getUsername (), settings.getPassword ());
 
   responseCode = poster.getResponseCode ();
   return poster.getResponseBody ();
