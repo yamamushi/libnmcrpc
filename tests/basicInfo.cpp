@@ -18,9 +18,10 @@
  *  to those of the GNU Affero General Public License.
  */
 
-/* Test program for the JSON-RPC interface.  */
+/* Test program for high-level query of basic infos.  */
 
 #include "JsonRpc.hpp"
+#include "NamecoinInterface.hpp"
 
 #include <cassert>
 #include <cstdlib>
@@ -34,36 +35,21 @@ main ()
   RpcSettings settings;
   settings.readDefaultConfig ();
   JsonRpc rpc(settings);
+  NamecoinInterface nc(rpc);
 
-  JsonRpc::JsonData res = rpc.executeRpc ("getinfo");
-  assert (res.isObject ());
-  std::cout << "Running version: " << res["version"].asInt () << std::endl;
-
-  res = rpc.executeRpc ("name_show", "id/domob");
-  assert (res.isObject ());
-  assert (res["name"].asString () == "id/domob");
-  assert (res["value"].isString ());
-  assert (res["expires_in"].isInt ());
-
-  try
-    {
-      rpc.executeRpc ("method-does-not-exist", 5, "");
-      assert (false);
-    }
-  catch (const JsonRpc::RpcError& err)
-    {
-      assert (err.getErrorCode () == -32601);
-    }
-
-  try
-    {
-      rpc.executeRpc ("name_history", "name-does-not-exist");
-      assert (false);
-    }
-  catch (const JsonRpc::RpcError& err)
-    {
-      assert (err.getErrorCode () == -4);
-    }
+  NamecoinInterface::Address addr;
+  addr = nc.queryAddress ("foobar-invalid-address");
+  assert (!addr.isValid () && !addr.isMine ());
+  addr = nc.queryAddress ("NFUJUGVzjTuef8bX7dd3BfXekfu8cdzkuH");
+  assert (addr.isValid ());
+  /* Can't check for mine, because this depends on the current wallet!
+     Instead, print at least whether the address is mine or not.  */
+  std::cout << addr.getAddress () << ": ";
+  if (addr.isMine ())
+    std::cout << "mine";
+  else
+    std::cout << "not mine";
+  std::cout << std::endl;
 
   return EXIT_SUCCESS;
 }
