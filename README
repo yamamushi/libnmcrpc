@@ -7,4 +7,10 @@ be used to either perform arbitrary RPC queries directly, or programs
 can also use some high-level predefined commands that are implemented
 into the library already.
 
+For building libnmcrpc, you need cURL [1] installed (for GNU/Linux systems
+you need the -dev package) as well as JsonCpp, which can be found at [2].
+
+  [1] http://curl.haxx.se/
+  [2] http://jsoncpp.sourceforge.net/
+
 See AUTHORS for how to contact me in case of comments or questions.
