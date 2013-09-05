@@ -32,8 +32,7 @@ int
 main ()
 {
   RpcSettings settings;
-  settings.setUsername ("daniel");
-  settings.setPassword ("password");
+  settings.readDefaultConfig ();
   JsonRpc rpc (settings);
 
   JsonRpc::JsonData res = rpc.executeRpc ("getinfo");

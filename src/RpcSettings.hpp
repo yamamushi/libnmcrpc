@@ -83,6 +83,11 @@ public:
    */
   void readConfig (const std::string& filename);
 
+  /**
+   * Try to read the default namecoin.conf config file and update settings.
+   */
+  void readDefaultConfig ();
+
   /* Accessor methods.  */
 
   inline const std::string&

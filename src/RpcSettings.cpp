@@ -22,6 +22,10 @@
 
 #include "RpcSettings.hpp"
 
+#include <cstdlib>
+#include <fstream>
+#include <sstream>
+
 namespace nmcrpc
 {
 
@@ -33,7 +37,50 @@ namespace nmcrpc
 void
 RpcSettings::readConfig (const std::string& filename)
 {
-  // FIXME: Implement this.
+  std::ifstream in(filename);
+
+  /* We're going to ignore all errors, since this is just a "best try"
+     approach to configuration guessing anyway.  */
+
+  while (in)
+    {
+      std::string line;
+      std::getline (in, line);
+
+      const auto equalPos = line.find ('=');
+      if (equalPos != std::string::npos)
+        {
+          const std::string before(line, 0, equalPos);
+          const std::string after(line, equalPos + 1);
+
+          if (before == "rpcport")
+            {
+              std::istringstream numIn(after);
+              numIn >> port;
+            }
+          else if (before == "rpcuser")
+            username = after;
+          else if (before == "rpcpassword")
+            password = after;
+        }
+    }
+}
+
+/**
+ * Try to read the default namecoin.conf config file and update settings.
+ */
+void
+RpcSettings::readDefaultConfig ()
+{
+  /* FIXME: Make work also for OSX and Windows!  */
+
+  const char* home = getenv ("HOME");
+  if (!home)
+    return;
+
+  std::ostringstream filename;
+  filename << home << "/.namecoin/namecoin.conf";
+  readConfig (filename.str ());
 }
 
 } // namespace nmcrpc
