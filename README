@@ -1,11 +1,15 @@
 Namecoin RPC
 ============
 
-libnmcrpc is a C++ library based on Boost that allows C++ programs to
-interact with the JSON-RPC interface of a running namecoind.  This can
-be used to either perform arbitrary RPC queries directly, or programs
-can also use some high-level predefined commands that are implemented
-into the library already.
+libnmcrpc is a C++ library that allows C++ programs to interact with
+the JSON-RPC interface of a running namecoind.  This can be used to
+either perform arbitrary RPC queries directly, or programs can also
+use some high-level predefined commands that are implemented into the
+library already.
+
+The low-level RPC interface should also be able to talk to Bitcoin or
+other altcoins, although my focus with testing and development
+is on Namecoin.
 
 For building libnmcrpc, you need cURL [1] installed (for GNU/Linux systems
 you need the -dev package) as well as JsonCpp, which can be found at [2].
