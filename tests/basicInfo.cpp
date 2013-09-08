@@ -51,5 +51,27 @@ main ()
     std::cout << "not mine";
   std::cout << std::endl;
 
+  NamecoinInterface::Name name;
+  name = nc.queryName ("id/domob");
+  assert (name.exists () && !name.isExpired ());
+  assert (!name.isExpired ());
+  std::cout << name.getName () << ": " << name.getAddress ().getAddress ()
+            << ", expires in " << name.getExpireCounter () << std::endl;
+  name = nc.queryName ("id", "dani");
+  assert (name.exists () && !name.isExpired ());
+  assert (name.getJsonValue ()["email"].asString () == "d@domob.eu");
+  try
+    {
+      name = nc.queryName ("name-is-not-yet-registered");
+      assert (!name.exists ());
+      name.getStringValue ();
+      // Here the exception should be thrown.
+      assert (false);
+    }
+  catch (const NamecoinInterface::NameNotFound& exc)
+    {
+      // This is expected.
+    }
+
   return EXIT_SUCCESS;
 }

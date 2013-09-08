@@ -24,6 +24,7 @@
 #include "JsonRpc.hpp"
 
 #include <cassert>
+#include <stdexcept>
 #include <string>
 
 namespace nmcrpc
@@ -79,6 +80,25 @@ public:
    */
   Address queryAddress (const std::string& addr);
 
+  /**
+   * Query for a name by string.  If the name is registered, this immediately
+   * queries for the name's associated data.  If the name does not yet exist,
+   * this still succeeds and returns a Name object that can be used to find
+   * out that fact as well as register the name.
+   * @param name The name to check.
+   * @return The created name object.
+   */
+  Name queryName (const std::string& name);
+
+  /**
+   * Query for a name by namespace and name.
+   * @see queryName (const std::string&)
+   * @param ns The namespace.
+   * @param name The (namespace-less) name.
+   * @return The created name object.
+   */
+  Name queryName (const std::string& ns, const std::string& name);
+
 };
 
 /* ************************************************************************** */
@@ -103,7 +123,7 @@ private:
   bool mine;
 
   /**
-   * Construct the address This is meant to be used only
+   * Construct the address.  This is meant to be used only
    * from inside NamecoinInterface.  Outside users should use
    * NamecoinInterface::queryAddress or other methods to obtain
    * address objects.
@@ -161,6 +181,178 @@ public:
   isMine () const
   {
     return mine;
+  }
+
+};
+
+/* ************************************************************************** */
+/* Name object.  */
+
+/**
+ * Encapsulate a Namecoin name.
+ */
+class NamecoinInterface::Name
+{
+
+private:
+
+  friend class NamecoinInterface;
+
+  /**
+   * Whether or not this is a default-constructed object.  Those can't be
+   * used for anything.
+   */
+  bool initialised;
+
+  /** The name's string.  */
+  std::string name;
+
+  /** Whether or not the name is already registered.  */
+  bool ex;
+
+  /** The address holding the name.  */
+  Address addr;
+
+  /** The name's JSON data, which name_show returns.  */
+  JsonRpc::JsonData data;
+
+  /**
+   * Construct the name.  This is meant to be used only
+   * from inside NamecoinInterface.  Outside users should use
+   * NamecoinInterface::queryName or other methods to obtain
+   * name objects.
+   * @param n The name's string.
+   * @param nc NamecoinInterface object.
+   * @param rpc The RPC object to use for finding info about the name.
+   */
+  Name (const std::string& n, NamecoinInterface& nc, JsonRpc& rpc);
+
+  /**
+   * Ensure that this object is initialised and not default-constructed.
+   * @throws std::runtime_error if it is default-constructed.
+   */
+  inline void
+  ensureInitialised () const
+  {
+    if (!initialised)
+      throw std::runtime_error ("Name is not yet initialised.");
+  }
+
+  /**
+   * Ensure that this object has status "exists".
+   * @throws NameNotFound if the name doesn't yet exist.
+   */
+  void ensureExists () const;
+
+public:
+
+  /**
+   * Default constructor, marks object as "invalid".  This is here for
+   * convenience so that variables of type Name can be declared, but they
+   * can't be used for anything until they have been assigned to.
+   */
+  inline Name ()
+    : initialised(false)
+  {
+    // Nothing more to do.
+  }
+
+  // Copying is ok.
+  Name (const Name&) = default;
+  Name& operator= (const Name&) = default;
+
+  /**
+   * Get the name as string.
+   * @return The name as string.
+   */
+  inline const std::string&
+  getName () const
+  {
+    ensureInitialised ();
+    return name;
+  }
+
+  /**
+   * Get the address holding the name.
+   * @return The name's address.
+   * @throws NameNotFound if the name doesn't yet exist.
+   */
+  inline const Address&
+  getAddress () const
+  {
+    ensureExists ();
+    return addr;
+  }
+
+  /**
+   * Get whether or not the name exists.
+   * @return True iff this name already exists.
+   */
+  inline bool
+  exists () const
+  {
+    ensureInitialised ();
+    return ex;
+  }
+
+  /**
+   * Get the name's full JSON info as per name_show.
+   * @return This name's full JSON info.
+   * @throws NameNotFound if the name doesn't yet exist.
+   */
+  inline const JsonRpc::JsonData&
+  getFullData () const
+  {
+    ensureExists ();
+    return data;
+  }
+
+  /**
+   * Get the name's value as string.
+   * @return This name's value as string.
+   * @throws NameNotFound if the name doesn't yet exist.
+   */
+  inline const std::string
+  getStringValue () const
+  {
+    ensureExists ();
+    return data["value"].asString ();
+  }
+
+  /**
+   * Get the name's value as JSON object.
+   * @return This name's value as JSON object.
+   * @throws NameNotFound if the name doesn't yet exist.
+   * @throws JsonRpc::JsonParseError if JSON parsing fails.
+   */
+  inline JsonRpc::JsonData
+  getJsonValue () const
+  {
+    return JsonRpc::decodeJson (getStringValue ());
+  }
+
+  /**
+   * Return whether the name is expired.
+   * @return True iff this name exists but is expired.
+   * @throws NameNotFound if the name doesn't yet exist.
+   */
+  inline bool
+  isExpired () const
+  {
+    ensureExists ();
+    return (data["expired"].isBool () && data["expired"].asBool ());
+  }
+
+  /**
+   * Return number of blocks until the name expires.
+   * @return The number of blocks until the name expires.  Might be negative.
+   * @throws NameNotFound if the name doesn't yet exist.
+   */
+  inline int
+  getExpireCounter () const
+  {
+    ensureExists ();
+    return data["expires_in"].asInt ();
   }
 
 };

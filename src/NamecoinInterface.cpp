@@ -22,6 +22,8 @@
 
 #include "NamecoinInterface.hpp"
 
+#include <sstream>
+
 namespace nmcrpc
 {
 
@@ -45,6 +47,79 @@ NamecoinInterface::queryAddress (const std::string& addr)
     mine = res["ismine"].asBool ();
 
   return Address (addr, valid, mine);
+}
+
+/**
+ * Query for a name by string.  If the name is registered, this immediately
+ * queries for the name's associated data.  If the name does not yet exist,
+ * this still succeeds and returns a Name object that can be used to find
+ * out that fact as well as register the name.
+ * @param name The name to check.
+ * @return The created name object.
+ */
+NamecoinInterface::Name
+NamecoinInterface::queryName (const std::string& name)
+{
+  return Name (name, *this, rpc);
+}
+
+/**
+ * Query for a name by namespace and name.
+ * @see queryName (const std::string&)
+ * @param ns The namespace.
+ * @param name The (namespace-less) name.
+ * @return The created name object.
+ */
+NamecoinInterface::Name
+NamecoinInterface::queryName (const std::string& ns, const std::string& name)
+{
+  std::ostringstream full;
+  full << ns << "/" << name;
+  return queryName (full.str ());
+}
+
+/* ************************************************************************** */
+/* Name object.  */
+
+/**
+ * Construct the name.  This is meant to be used only
+ * from inside NamecoinInterface.  Outside users should use
+ * NamecoinInterface::queryName or other methods to obtain
+ * name objects.
+ * @param n The name's string.
+ * @param nc NamecoinInterface object.
+ * @param rpc The RPC object to use for finding info about the name.
+ */
+NamecoinInterface::Name::Name (const std::string& n, NamecoinInterface& nc,
+                               JsonRpc& rpc)
+  : initialised(true), name(n)
+{
+  try
+    {
+      data = rpc.executeRpc ("name_show", n);
+      ex = true;
+      addr = nc.queryAddress (data["address"].asString ());
+    }
+  catch (const JsonRpc::RpcError& exc)
+    {
+      if (exc.getErrorCode () == -4)
+        {
+          ex = false;
+          return;
+        }
+      throw exc;
+    }
+}
+
+/**
+ * Ensure that this object has status "exists".
+ * @throws NameNotFound if the name doesn't yet exist.
+ */
+void
+NamecoinInterface::Name::ensureExists () const
+{
+  if (!ex)
+    throw NameNotFound (name);
 }
 
 } // namespace nmcrpc
