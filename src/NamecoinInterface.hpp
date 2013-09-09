@@ -114,6 +114,9 @@ private:
 
   friend class NamecoinInterface;
 
+  /** The namecoin interface to be used for RPC calls (message signing).  */
+  JsonRpc* rpc;
+
   /** The address as string.  */
   std::string addr;
 
@@ -127,15 +130,10 @@ private:
    * from inside NamecoinInterface.  Outside users should use
    * NamecoinInterface::queryAddress or other methods to obtain
    * address objects.
+   * @param r The namecoin interface to use.
    * @param a The address as string.
-   * @param v Valid?
-   * @param m Mine?
    */
-  inline Address (const std::string& a, bool v, bool m)
-    : addr(a), valid(v), mine(m)
-  {
-    assert (!(mine && !valid));
-  }
+  Address (JsonRpc& r, const std::string& a);
 
 public:
 
@@ -144,7 +142,7 @@ public:
    * so that variables of type Address can be declared.
    */
   inline Address ()
-    : addr(""), valid(false), mine(false)
+    : rpc(nullptr), addr(""), valid(false), mine(false)
   {
     // Nothing more to do.
   }
@@ -182,6 +180,25 @@ public:
   {
     return mine;
   }
+
+  /**
+   * Check a message signature against this address.  If this address
+   * is invalid, false is returned.
+   * @param msg The message that should be signed.
+   * @param sig The message's signature.
+   * @return True iff the signature matches the message.
+   */
+  bool verifySignature (const std::string& msg, const std::string& sig) const;
+
+  /**
+   * Sign a message with this address.  This may throw if the address
+   * is invalid, the wallet locked or the private key is not owned.
+   * @param msg The message that should be signed.
+   * @return The message's signature.
+   * @throws NoPrivateKey if this address is not owned.
+   * @throws std::runtime_error if the address is invalid or the wallet locked.
+   */
+  std::string signMessage (const std::string& msg) const;
 
 };
 

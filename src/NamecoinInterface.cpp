@@ -40,13 +40,7 @@ namespace nmcrpc
 NamecoinInterface::Address
 NamecoinInterface::queryAddress (const std::string& addr)
 {
-  JsonRpc::JsonData res = rpc.executeRpc ("validateaddress", addr);
-  const bool valid = res["isvalid"].asBool ();
-  bool mine = false;
-  if (valid)
-    mine = res["ismine"].asBool ();
-
-  return Address (addr, valid, mine);
+  return Address (rpc, addr);
 }
 
 /**
@@ -76,6 +70,55 @@ NamecoinInterface::queryName (const std::string& ns, const std::string& name)
   std::ostringstream full;
   full << ns << "/" << name;
   return queryName (full.str ());
+}
+
+/* ************************************************************************** */
+/* Address object.  */
+
+/**
+ * Construct the address.  This is meant to be used only
+ * from inside NamecoinInterface.  Outside users should use
+ * NamecoinInterface::queryAddress or other methods to obtain
+ * address objects.
+ * @param r The namecoin interface to use.
+ * @param a The address as string.
+ */
+NamecoinInterface::Address::Address (JsonRpc& r, const std::string& a)
+  : rpc(&r), addr(a)
+{
+  const JsonRpc::JsonData res = rpc->executeRpc ("validateaddress", addr);
+  valid = res["isvalid"].asBool ();
+  mine = false;
+  if (valid)
+    mine = res["ismine"].asBool ();
+}
+
+/**
+ * Check a message signature against this address.  If this address
+ * is invalid, false is returned.
+ * @param msg The message that should be signed.
+ * @param sig The message's signature.
+ * @return True iff the signature matches the message.
+ */
+bool
+NamecoinInterface::Address::verifySignature (const std::string& msg,
+                                             const std::string& sig) const
+{
+  if (!valid)
+    return false;
+
+  try
+    {
+      JsonRpc::JsonData res = rpc->executeRpc ("verifymessage", addr, sig, msg);
+      return (res.isBool () && res.asBool ());
+    }
+  catch (const JsonRpc::RpcError& exc)
+    {
+      // Malformed base64?
+      if (exc.getErrorCode () == -5)
+        return false;
+      throw exc;
+    }
 }
 
 /* ************************************************************************** */
