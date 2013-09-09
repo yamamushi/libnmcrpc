@@ -72,6 +72,8 @@ main ()
     {
       // This is expected.
     }
+  name = nc.queryName ("a", "-");
+  assert (name.exists () && name.isExpired ());
 
   return EXIT_SUCCESS;
 }

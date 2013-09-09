@@ -340,7 +340,7 @@ public:
   isExpired () const
   {
     ensureExists ();
-    return (data["expired"].isBool () && data["expired"].asBool ());
+    return (data["expired"].isInt () && (data["expired"].asInt () != 0));
   }
 
   /**
