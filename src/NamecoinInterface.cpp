@@ -22,6 +22,7 @@
 
 #include "NamecoinInterface.hpp"
 
+#include <ctime>
 #include <sstream>
 
 namespace nmcrpc
@@ -29,6 +30,8 @@ namespace nmcrpc
 
 /* ************************************************************************** */
 /* High-level interface to Namecoin.  */
+
+const unsigned NamecoinInterface::UNLOCK_SECONDS = 10;
 
 /**
  * Query for an address by string.  This immediately checks whether the
@@ -70,6 +73,24 @@ NamecoinInterface::queryName (const std::string& ns, const std::string& name)
   std::ostringstream full;
   full << ns << "/" << name;
   return queryName (full.str ());
+}
+
+/**
+ * Check whether the wallet needs to be unlocked or not.  This routine is
+ * used to decide whether we need to ask for a passphrase or not before
+ * using WalletUnlocker.
+ * @return True iff we need a passphrase.
+ */
+bool
+NamecoinInterface::needWalletPassphrase ()
+{
+  const JsonRpc::JsonData res = rpc.executeRpc ("getinfo");
+
+  if (res["unlocked_until"].isNull ())
+    return false;
+
+  const int until = res["unlocked_until"].asInt ();
+  return (until < std::time (nullptr) + UNLOCK_SECONDS);
 }
 
 /* ************************************************************************** */
@@ -121,6 +142,46 @@ NamecoinInterface::Address::verifySignature (const std::string& msg,
     }
 }
 
+/**
+ * Sign a message with this address.  This may throw if the address
+ * is invalid, the wallet locked or the private key is not owned.
+ * @param msg The message that should be signed.
+ * @return The message's signature.
+ * @throws NoPrivateKey if this address is not owned.
+ * @throws std::runtime_error if the address is invalid or the wallet locked.
+ */
+std::string
+NamecoinInterface::Address::signMessage (const std::string& msg) const
+{
+  if (!valid)
+    throw std::runtime_error ("Can't sign with invalid address.");
+
+  try
+    {
+      const JsonRpc::JsonData res = rpc->executeRpc ("signmessage", addr, msg);
+      return res.asString ();
+    }
+  catch (const JsonRpc::RpcError& exc)
+    {
+      switch (exc.getErrorCode ())
+        {
+        case -13:
+          throw std::runtime_error ("Need to unlock the wallet first.");
+
+        case -3:
+          {
+            std::ostringstream msg;
+            msg << "You don't have the private key of " << addr << " in order"
+                << " to sign messages with that address.";
+            throw NoPrivateKey (msg.str ());
+          }
+
+        default:
+          throw exc;
+        }
+    }
+}
+
 /* ************************************************************************** */
 /* Name object.  */
 
@@ -163,6 +224,49 @@ NamecoinInterface::Name::ensureExists () const
 {
   if (!ex)
     throw NameNotFound (name);
+}
+
+/* ************************************************************************** */
+/* Wallet unlocker.  */
+
+/**
+ * Construct it, which unlocks the wallet (if necessary).  The passphrase
+ * must be correct if unlock is needed, and can be anything if it is not.
+ * @param nc The NamecoinInterface to use.
+ * @param passphrase Passphrase to use for unlocking.
+ * @throws UnlockFailure if the passphrase is wrong.
+ */
+NamecoinInterface::WalletUnlocker::WalletUnlocker
+  (NamecoinInterface& nc, const std::string& passphrase)
+  : rpc(nc.rpc)
+{
+  unlocked = nc.needWalletPassphrase ();
+  if (unlocked)
+    {
+      /* Ensure the wallet is indeed locked before we send the passphrase.
+         It could be the case that it is unlocked although for too short
+         a time, then lock it now.  */
+      rpc.executeRpc ("walletlock");
+      try
+        {
+          rpc.executeRpc ("walletpassphrase", passphrase, UNLOCK_SECONDS);
+        }
+      catch (const JsonRpc::RpcError& exc)
+        {
+          if (exc.getErrorCode () == -14)
+            throw UnlockFailure ("Wrong wallet passphrase.");
+          throw exc;
+        }
+    }
+}
+
+/**
+ * Lock the wallet on destruct.
+ */
+NamecoinInterface::WalletUnlocker::~WalletUnlocker ()
+{
+  if (unlocked)
+    rpc.executeRpc ("walletlock");
 }
 
 } // namespace nmcrpc

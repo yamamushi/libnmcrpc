@@ -52,5 +52,54 @@ main ()
   addr = nc.queryAddress ("invalid-address");
   assert (!addr.verifySignature (testMsg, testSig));
 
+  std::string signAddr, passphrase;
+  std::cout << "Enter address for testing message signing (or 'auto'): ";
+  getline (std::cin, signAddr);
+  bool passphraseNeeded;
+  passphraseNeeded = nc.needWalletPassphrase ();
+  if (passphraseNeeded)
+    {
+      std::cout << "Enter wallet passphrase: ";
+      getline (std::cin, passphrase);
+    }
+
+  try
+    {
+      NamecoinInterface::WalletUnlocker unlock(nc, passphrase);
+
+      addr = nc.queryAddress ("NELdJ5BTQuV6gUrxuA9L7My2Q6CyXeR3Ud");
+      try
+        {
+          addr.signMessage (testMsg);
+          // This should have thrown.
+          assert (false);
+        }
+      catch (const NamecoinInterface::NoPrivateKey& exc)
+        {
+          // This is expected.
+        }
+
+      if (signAddr == "auto")
+        {
+          signAddr = rpc.executeRpc ("getaccountaddress", "").asString ();
+          std::cout << "Using signing address " << signAddr << " as test."
+                    << std::endl;
+        }
+      addr = nc.queryAddress (signAddr);
+      if (addr.isValid ())
+        {
+          const std::string sig = addr.signMessage (testMsg);
+          assert (addr.verifySignature (testMsg, sig));
+        }
+      else
+        std::cout << "Signing address is invalid, ignoring this test."
+                  << std::endl;
+    }
+  catch (const NamecoinInterface::UnlockFailure& exc)
+    {
+      std::cout << "Unlock failed, ignoring those tests." << std::endl;
+    }
+  assert (passphraseNeeded == nc.needWalletPassphrase ());
+
   return EXIT_SUCCESS;
 }

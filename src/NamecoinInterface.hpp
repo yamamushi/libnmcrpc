@@ -44,15 +44,23 @@ public:
   /* Exceptions.  */
   class NameNotFound;
   class NoPrivateKey;
+  class UnlockFailure;
 
   /* Other child classes.  */
   class Address;
   class Name;
+  class WalletUnlocker;
 
 private:
 
   /** Underlying RPC connection.  */
   JsonRpc& rpc;
+
+  /**
+   * The number of seconds we want to temporarily unlock the wallet in case
+   * we need access to a private key.
+   */
+  static const unsigned UNLOCK_SECONDS;
 
 public:
 
@@ -98,6 +106,14 @@ public:
    * @return The created name object.
    */
   Name queryName (const std::string& ns, const std::string& name);
+
+  /**
+   * Check whether the wallet needs to be unlocked or not.  This routine is
+   * used to decide whether we need to ask for a passphrase or not before
+   * using WalletUnlocker.
+   * @return True iff we need a passphrase.
+   */
+  bool needWalletPassphrase ();
 
 };
 
@@ -375,6 +391,50 @@ public:
 };
 
 /* ************************************************************************** */
+/* Wallet unlocker.  */
+
+/**
+ * Unlock the wallet temporarily (during the scope of the object).  RAII
+ * ensures that the wallet is locked (if it was indeed unlocked) again
+ * at the latest when we go out of scope.
+ */
+class NamecoinInterface::WalletUnlocker
+{
+
+private:
+
+  friend class NamecoinInterface;
+
+  /** The RPC object to use.  */
+  JsonRpc& rpc;
+
+  /** Whether we actually unlocked the wallet.  */
+  bool unlocked;
+
+public:
+
+  /**
+   * Construct it, which unlocks the wallet (if necessary).  The passphrase
+   * must be correct if unlock is needed, and can be anything if it is not.
+   * @param nc The NamecoinInterface to use.
+   * @param passphrase Passphrase to use for unlocking.
+   * @throws UnlockFailure if the passphrase is wrong.
+   */
+  WalletUnlocker (NamecoinInterface& nc, const std::string& passphrase);
+
+  // No default constructor or copying.
+  WalletUnlocker () = delete;
+  WalletUnlocker (const WalletUnlocker&) = delete;
+  WalletUnlocker& operator= (const WalletUnlocker&) = delete;
+
+  /**
+   * Lock the wallet on destruct.
+   */
+  ~WalletUnlocker ();
+
+};
+
+/* ************************************************************************** */
 /* Exception classes.  */
 
 /**
@@ -440,6 +500,32 @@ public:
   NoPrivateKey () = delete;
   NoPrivateKey (const NoPrivateKey&) = default;
   NoPrivateKey& operator= (const NoPrivateKey&) = default;
+
+};
+
+/**
+ * Thrown in case of failure to unlock the wallet (because of a wrong
+ * passphrase, presumably).
+ */
+class NamecoinInterface::UnlockFailure : public std::runtime_error
+{
+
+public:
+
+  /**
+   * Construct it given the error message.
+   * @param msg The error message.
+   */
+  explicit inline UnlockFailure (const std::string& msg)
+    : std::runtime_error(msg)
+  {
+    // Nothing else to do.
+  }
+
+  /* No default constructor, but copying ok.  */
+  UnlockFailure () = delete;
+  UnlockFailure (const UnlockFailure&) = default;
+  UnlockFailure& operator= (const UnlockFailure&) = default;
 
 };
 
