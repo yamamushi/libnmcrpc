@@ -23,7 +23,6 @@
 
 #include "JsonRpc.hpp"
 
-#include <cassert>
 #include <stdexcept>
 #include <string>
 
