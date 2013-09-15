@@ -25,6 +25,7 @@
 
 #include <json/value.h>
 
+#include <iostream>
 #include <stdexcept>
 #include <string>
 
@@ -97,6 +98,14 @@ public:
    * @throws JsonParseError in case of parsing errors.
    */
   static JsonData decodeJson (const std::string& str);
+
+  /**
+   * Decose JSON from an input stream.
+   * @param in Input stream.
+   * @returns the parsed JSON data.
+   * @throws JsonParseError inc ase of parsing errors.
+   */
+  static JsonData readJson (std::istream& in);
 
   /**
    * Encode JSON to a string.

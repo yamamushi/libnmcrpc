@@ -252,10 +252,23 @@ JsonRpc::queryHttp (const std::string& query, unsigned& responseCode)
 JsonRpc::JsonData
 JsonRpc::decodeJson (const std::string& str)
 {
+  std::istringstream in(str);
+  return readJson (in);
+}
+
+/**
+ * Decose JSON from an input stream.
+ * @param in Input stream.
+ * @returns the parsed JSON data.
+ * @throws JsonParseError inc ase of parsing errors.
+ */
+JsonRpc::JsonData
+JsonRpc::readJson (std::istream& in)
+{
   Json::Reader parser;
   Json::Value root;
 
-  const bool success = parser.parse (str, root);
+  const bool success = parser.parse (in, root);
   if (!success)
     throw JsonParseError ("Error decoding the JSON value.");
 
