@@ -178,7 +178,7 @@ public:
    * @param out The output stream.
    * @param obj The NameRegistration object to save.
    * @return The stream.
-   * @throws std::runtime_error if the name is not REGISTERED state.
+   * @throws std::runtime_error if the name is not REGISTERED/ACTIVATED state.
    */
   friend std::ostream& operator<< (std::ostream& out,
                                    const NameRegistration& obj);

@@ -34,50 +34,63 @@ using namespace nmcrpc;
 int
 main (int argc, char** argv)
 {
-  if (argc != 2)
+  try
     {
-      std::cerr << "Usage: registerName STATE-FILE" << std::endl;
-      return EXIT_FAILURE;
-    }
-  const std::string fileName = argv[1];
+      if (argc != 2)
+        throw std::runtime_error ("Usage: registerName STATE-FILE");
+      const std::string fileName = argv[1];
 
-  RpcSettings settings;
-  settings.readDefaultConfig ();
-  JsonRpc rpc(settings);
-  NamecoinInterface nc(rpc);
-  NameRegistration reg(rpc);
+      RpcSettings settings;
+      settings.readDefaultConfig ();
+      JsonRpc rpc(settings);
+      NamecoinInterface nc(rpc);
+      NameRegistration reg(rpc);
 
-  std::ifstream fileIn(fileName);
-  if (fileIn)
-    {
-      std::cout << "Found state file, reading and trying to firstupdate."
-                << std::endl;
-      fileIn >> reg;
-      fileIn.close ();
-      
-      if (reg.canActivate ())
+      std::ifstream fileIn(fileName);
+      if (fileIn)
         {
-          reg.activate ();
-          std::cout << "Activated the name." << std::endl;
+          std::cout << "Found state file, reading it and processing further."
+                    << std::endl;
+          fileIn >> reg;
+          fileIn.close ();
+          
+          if (reg.isFinished ())
+            std::cout << "Activation finished." << std::endl;
+          else if (reg.canActivate ())
+            {
+              reg.activate ();
+              std::cout << "Activated the name." << std::endl;
+            }
+          else
+            std::cout << "Please wait longer." << std::endl;
         }
       else
-        std::cout << "Please wait longer." << std::endl;
-    }
-  else
-    {
-      std::string name;
-      std::cout << "Name to register: ";
-      std::cin >> name;
-      reg.registerName (nc.queryName (name));
+        {
+          std::string name;
+          std::cout << "Name to register: ";
+          std::cin >> name;
+          reg.registerName (nc.queryName (name));
 
-      std::string value;
-      std::cout << "Value to set: ";
-      std::cin >> value;
-      reg.setValue (value);
+          std::string value;
+          std::cout << "Value to set: ";
+          std::cin >> value;
+          reg.setValue (value);
+        }
 
       std::ofstream fileOut(fileName);
       fileOut << reg;
       fileOut.close ();
+    }
+  catch (const JsonRpc::RpcError& exc)
+    {
+      std::cerr << "JSON-RPC error:" << std::endl;
+      std::cerr << exc.getErrorMessage () << std::endl;
+      return EXIT_FAILURE;
+    }
+  catch (const std::exception& exc)
+    {
+      std::cerr << "Error: " << exc.what () << std::endl;
+      return EXIT_FAILURE;
     }
 
   return EXIT_SUCCESS;

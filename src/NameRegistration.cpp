@@ -140,16 +140,29 @@ NameRegistration::isFinished () const
 std::ostream&
 operator<< (std::ostream& out, const NameRegistration& obj)
 {
-  if (obj.state != NameRegistration::REGISTERED)
-    throw std::runtime_error ("Can only write state in REGISTERED state.");
-
   JsonRpc::JsonData outVal(Json::objectValue);
   outVal["type"] = "NameRegistration";
   outVal["version"] = 1;
   outVal["name"] = obj.name;
-  outVal["value"] = obj.value;
-  outVal["rand"] = obj.rand;
-  outVal["tx"] = obj.tx;
+
+  switch (obj.state)
+    {
+    case NameRegistration::REGISTERED:
+      outVal["state"] = "registered";
+      outVal["value"] = obj.value;
+      outVal["rand"] = obj.rand;
+      outVal["tx"] = obj.tx;
+      break;
+
+    case NameRegistration::ACTIVATED:
+      outVal["state"] = "activated";
+      outVal["txActivation"] = obj.txActivation;
+      break;
+
+    default:
+      throw std::runtime_error ("Wrong state for saving of NameRegistration.");
+    }
+
 
   out << JsonRpc::encodeJson (outVal);
   return out;
@@ -173,11 +186,24 @@ operator>> (std::istream& in, NameRegistration& obj)
     throw std::runtime_error ("Wrong JSON object found, expected"
                               " version 1 NameRegistration.");
 
-  obj.state = NameRegistration::REGISTERED;
   obj.name = inVal["name"].asString ();
-  obj.value = inVal["value"].asString ();
-  obj.rand = inVal["rand"].asString ();
-  obj.tx = inVal["tx"].asString ();
+
+  const std::string state = inVal["state"].asString ();
+  if (state == "registered")
+    {
+      obj.state = NameRegistration::REGISTERED;
+      obj.value = inVal["value"].asString ();
+      obj.rand = inVal["rand"].asString ();
+      obj.tx = inVal["tx"].asString ();
+    }
+  else if (state == "activated")
+    {
+      obj.state = NameRegistration::ACTIVATED;
+      obj.txActivation = inVal["txActivation"].asString ();
+    }
+  else
+    throw std::runtime_error ("Invalid state found in the JSON data"
+                              " of NameRegistration.");
 
   return in;
 }
