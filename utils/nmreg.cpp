@@ -139,6 +139,14 @@ main (int argc, char** argv)
       NamecoinInterface nc(rpc);
       RegistrationManager reg(rpc);
 
+      std::string passphrase;
+      if (nc.needWalletPassphrase ())
+        {
+          std::cout << "Enter wallet passphrase: ";
+          std::getline (std::cin, passphrase);
+        }
+      NamecoinInterface::WalletUnlocker unlock(nc, passphrase);
+
       std::ifstream fileIn(stateFile);
       if (fileIn)
         {
@@ -151,16 +159,6 @@ main (int argc, char** argv)
         }
       else
         std::cout << "No old state to read, intialising empty." << std::endl;
-
-      std::string passphrase;
-      if (command == "register" || command == "multi")
-        {
-          if (nc.needWalletPassphrase ())
-            {
-              std::cout << "Enter wallet passphrase: ";
-              std::getline (std::cin, passphrase);
-            }
-        }
 
       if (command == "info")
         doInfo (reg);
@@ -178,7 +176,6 @@ main (int argc, char** argv)
           const std::string name = argv[3];
           const std::string val = argv[4];
 
-          NamecoinInterface::WalletUnlocker unlock(nc, passphrase);
           doRegister (reg, nc, name, val);
         }
       else if (command == "multi") 
@@ -194,7 +191,6 @@ main (int argc, char** argv)
           if (!listIn)
             throw std::runtime_error ("Could not read list of names.");
 
-          NamecoinInterface::WalletUnlocker unlock(nc, passphrase);
           while (listIn)
             {
               std::string line;
