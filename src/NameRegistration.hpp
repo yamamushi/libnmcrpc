@@ -155,6 +155,26 @@ public:
   }
 
   /**
+   * Return the current state.
+   * @return The current state.
+   */
+  inline State
+  getState () const
+  {
+    return state;
+  }
+
+  /**
+   * Return the current name.
+   * @return The name being registered as string.
+   */
+  inline const std::string&
+  getName () const
+  {
+    return name;
+  }
+
+  /**
    * Check whether we can already perform a firstupdate transaction.
    * @return True iff we're in REGISTERED state and enough time has passed.
    */
@@ -346,8 +366,9 @@ public:
 
   /**
    * Purge finished names from the list.
+   * @return Number of elements purged.
    */
-  void cleanUp ();
+  unsigned cleanUp ();
 
   /* Get iterators.  */
 

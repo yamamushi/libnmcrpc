@@ -263,18 +263,26 @@ RegistrationManager::update ()
 
 /**
  * Purge finished names from the list.
+ * @return Number of elements purged.
  */
-void
+unsigned
 RegistrationManager::cleanUp ()
 {
+  unsigned res = 0;
+
   nameListT::iterator i = names.begin ();
   while (i != names.end ())
     {
       if ((*i)->isFinished ())
-        i = names.erase (i);
+        {
+          i = names.erase (i);
+          ++res;
+        }
       else
         ++i;
     }
+
+  return res;
 }
 
 /**

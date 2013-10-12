@@ -24,7 +24,6 @@
 #include "NamecoinInterface.hpp"
 #include "NameRegistration.hpp"
 
-#include <cassert>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
