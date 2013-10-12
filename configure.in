@@ -9,4 +9,5 @@ AC_LANG_CPLUSPLUS
 AC_OUTPUT(
  Makefile \
  src/Makefile \
+ utils/Makefile \
  tests/Makefile)
