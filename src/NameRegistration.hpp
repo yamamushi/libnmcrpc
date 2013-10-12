@@ -25,6 +25,7 @@
 #include "NamecoinInterface.hpp"
 
 #include <iostream>
+#include <list>
 #include <stdexcept>
 #include <string>
 
@@ -173,7 +174,7 @@ public:
   bool isFinished () const;
 
   /**
-   * For registered but not yet activated registration processes, save the
+   * For registered but not yet finished registration processes, save the
    * state necessary to later perform firstupdate to a stream.
    * @param out The output stream.
    * @param obj The NameRegistration object to save.
@@ -192,6 +193,206 @@ public:
    * @throws std::runtime_error/JsonParseError if no valid data can be found.
    */
   friend std::istream& operator>> (std::istream& in, NameRegistration& obj);
+
+};
+
+/* ************************************************************************** */
+/* Manage multiple name registration processes.  */
+
+/**
+ * Handle multiple name registration processes.  This is basically an array
+ * of NameRegistration objects that allows to save/restore and update
+ * all of them at once.
+ */
+class RegistrationManager
+{
+
+private:
+
+  /** The RPC connection to use.  */
+  JsonRpc& rpc;
+
+  /** Type used internally to keep the list of names.  */
+  typedef std::list<NameRegistration*> nameListT;
+
+  /** Store the name registration processes.  */
+  nameListT names;
+
+  /**
+   * Clear all elements, freeing the memory properly.
+   */
+  void clear ();
+
+  /**
+   * Template to use for const and non-const iterators.  They are based on
+   * the underlying iterators of the names list, but they dereference also
+   * the pointer already.
+   */
+  template<typename Base, typename Val>
+    class Iterator
+  {
+
+  private:
+
+    friend class RegistrationManager;
+
+    typedef Iterator<Base, Val> selfT;
+
+    /** Iterator backing this one.  */
+    Base iter;
+
+    /**
+     * Construct it given a base iterator.  This is private so that it can
+     * only be used by RegistrationManager itself.
+     * @param i The base iterator.
+     */
+    explicit inline Iterator (const Base& i)
+      : iter (i)
+    {
+      // Nothing else to do.
+    }
+
+  public:
+
+    // Copying and default constructor.
+    Iterator () = default;
+    Iterator (const selfT&) = default;
+    selfT& operator= (const selfT&) = default;
+
+    /* Compare for equality and inequality.  */
+
+    friend inline bool
+    operator== (const selfT& a, const selfT& b)
+    {
+      return a.iter == b.iter;
+    }
+
+    friend inline bool
+    operator!= (const selfT& a, const selfT& b)
+    {
+      return a.iter != b.iter;
+    }
+
+    /* Increment the iterator.  */
+
+    inline selfT&
+    operator++ ()
+    {
+      ++iter;
+      return *this;
+    }
+    
+    inline selfT
+    operator++ (int)
+    {
+      selfT res = *this;
+      ++iter;
+      return res;
+    }
+
+    /**
+     * Dereference the iterator, which returns the NameRegistration as
+     * reference and not pointer.
+     * @return The currently pointed to NameRegistration object.
+     */
+    inline Val&
+    operator* () const
+    {
+      return **iter;
+    }
+
+  };
+
+public:
+
+  /* Define iterators.  */
+  typedef Iterator<nameListT::iterator, NameRegistration> iterator;
+  typedef Iterator<nameListT::const_iterator,
+                   const NameRegistration> const_iterator;
+
+  /**
+   * Construct it empty.
+   * @param r The RPC interface to use.
+   */
+  inline RegistrationManager (JsonRpc& r)
+    : rpc(r), names()
+  {
+    // Nothing more to do.
+  }
+
+  // No copying.
+  RegistrationManager () = delete;
+  RegistrationManager (const RegistrationManager&) = delete;
+  RegistrationManager& operator= (const RegistrationManager&) = delete;
+
+  /**
+   * Destroy it safely.
+   */
+  ~RegistrationManager ();
+
+  /**
+   * Start registration for a new name.  The process object is returned so that
+   * the value can be set as desired.
+   * @param nm The name to register.
+   * @return The NameRegistration object created and inserted.
+   * @throws NameAlreadyReserved if the name already exists.
+   */
+  NameRegistration& registerName (const NamecoinInterface::Name& nm);
+
+  /**
+   * Try to update all processes, which activates names where it is possible.
+   */
+  void update ();
+
+  /**
+   * Purge finished names from the list.
+   */
+  void cleanUp ();
+
+  /* Get iterators.  */
+
+  inline iterator
+  begin ()
+  {
+    return iterator (names.begin ());
+  }
+
+  inline const_iterator
+  begin () const
+  {
+    return const_iterator (names.begin ());
+  }
+
+  inline iterator
+  end ()
+  {
+    return iterator (names.end ());
+  }
+
+  inline const_iterator
+  end () const
+  {
+    return const_iterator (names.end ());
+  }
+
+  /**
+   * Write out all states to the stream.
+   * @param out The output stream.
+   * @param obj The RegistrationManager object to save.
+   * @return The stream.
+   */
+  friend std::ostream& operator<< (std::ostream& out,
+                                   const RegistrationManager& obj);
+
+  /**
+   * Load all states from the stream, replacing all objects that
+   * are currently in the list (if any).
+   * @param in The input stream.
+   * @param obj The object to load into.
+   * @return The stream.
+   * @throws std::runtime_error/JsonParseError if no valid data can be found.
+   */
+  friend std::istream& operator>> (std::istream& in, RegistrationManager& obj);
 
 };
 

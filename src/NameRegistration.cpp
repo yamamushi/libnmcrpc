@@ -21,6 +21,8 @@
 #include "NameRegistration.hpp"
 
 #include <cassert>
+#include <memory>
+#include <sstream>
 
 namespace nmcrpc
 {
@@ -163,7 +165,6 @@ operator<< (std::ostream& out, const NameRegistration& obj)
       throw std::runtime_error ("Wrong state for saving of NameRegistration.");
     }
 
-
   out << JsonRpc::encodeJson (outVal);
   return out;
 }
@@ -204,6 +205,136 @@ operator>> (std::istream& in, NameRegistration& obj)
   else
     throw std::runtime_error ("Invalid state found in the JSON data"
                               " of NameRegistration.");
+
+  return in;
+}
+
+/* ************************************************************************** */
+/* Manage multiple name registration processes.  */
+
+/**
+ * Destroy it safely.
+ */
+RegistrationManager::~RegistrationManager ()
+{
+  clear ();
+}
+
+/**
+ * Clear all elements, freeing the memory properly.
+ */
+void
+RegistrationManager::clear ()
+{
+  for (auto ptr : names)
+    delete ptr;
+  names.clear ();
+}
+
+/**
+ * Start registration for a new name.  The process object is returned so that
+ * the value can be set as desired.
+ * @param nm The name to register.
+ * @return The NameRegistration object created and inserted.
+ * @throws NameAlreadyReserved if the name already exists.
+ */
+NameRegistration&
+RegistrationManager::registerName (const NamecoinInterface::Name& nm)
+{
+  std::unique_ptr<NameRegistration> ptr;
+
+  ptr.reset (new NameRegistration (rpc));
+  ptr->registerName (nm);
+
+  names.push_back (ptr.release ());
+  return *names.back ();
+}
+
+/**
+ * Try to update all processes, which activates names where it is possible.
+ */
+void
+RegistrationManager::update ()
+{
+  for (auto& nm : *this)
+    if (nm.canActivate ())
+      nm.activate ();
+}
+
+/**
+ * Purge finished names from the list.
+ */
+void
+RegistrationManager::cleanUp ()
+{
+  nameListT::iterator i = names.begin ();
+  while (i != names.end ())
+    {
+      if ((*i)->isFinished ())
+        i = names.erase (i);
+      else
+        ++i;
+    }
+}
+
+/**
+ * Write out all states to the stream.
+ * @param out The output stream.
+ * @param obj The RegistrationManager object to save.
+ * @return The stream.
+ */
+std::ostream&
+operator<< (std::ostream& out, const RegistrationManager& obj)
+{
+  JsonRpc::JsonData outVal(Json::objectValue);
+  outVal["type"] = "RegistrationManager";
+  outVal["version"] = 1;
+
+  JsonRpc::JsonData arr(Json::arrayValue);
+  for (const auto& nm : obj)
+    {
+      std::ostringstream val;
+      val << nm;
+      arr.append (val.str ());
+    }
+  outVal["elements"] = arr;
+
+  out << JsonRpc::encodeJson (outVal);
+  return out;
+}
+
+/**
+ * Load all states from the stream, replacing all objects that
+ * are currently in the list (if any).
+ * @param in The input stream.
+ * @param obj The object to load into.
+ * @return The stream.
+ * @throws std::runtime_error/JsonParseError if no valid data can be found.
+ */
+std::istream&
+operator>> (std::istream& in, RegistrationManager& obj)
+{
+  const JsonRpc::JsonData inVal = JsonRpc::readJson (in);
+
+  if (inVal["type"].asString () != "RegistrationManager"
+      || inVal["version"].asInt () != 1)
+    throw std::runtime_error ("Wrong JSON object found, expected"
+                              " version 1 RegistrationManager.");
+
+  const JsonRpc::JsonData elements = inVal["elements"];
+  if (!elements.isArray ())
+    throw std::runtime_error ("Invalid JSON for RegistrationManager.");
+
+  obj.clear ();
+  for (const JsonRpc::JsonData el : elements)
+    {
+      std::istringstream val(el.asString ());
+      std::unique_ptr<NameRegistration> ptr;
+
+      ptr.reset (new NameRegistration (obj.rpc));
+      val >> *ptr;
+      obj.names.push_back (ptr.release ());
+    }
 
   return in;
 }
