@@ -140,6 +140,8 @@ public:
 
 CurlPost::~CurlPost ()
 {
+  if (headers)
+    curl_slist_free_all (headers);
   if (handle)
     curl_easy_cleanup (handle);
 }
