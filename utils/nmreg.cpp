@@ -43,6 +43,8 @@ displayHelp ()
   std::cerr << "  * help: Display this message." << std::endl;
   std::cerr << "  * info: Show information about the state in FILE."
             << std::endl;
+  std::cerr << "  * update: Update all processes in FILE if possible."
+            << std::endl;
   std::cerr << "  * clear: Remove already finished processes from FILE."
             << std::endl;
   std::cerr << "  * register: Register the given name with the given value."
@@ -139,23 +141,12 @@ main (int argc, char** argv)
       NamecoinInterface nc(rpc);
       RegistrationManager reg(rpc);
 
-      std::string passphrase;
-      if (nc.needWalletPassphrase ())
-        {
-          std::cout << "Enter wallet passphrase: ";
-          std::getline (std::cin, passphrase);
-        }
-      NamecoinInterface::WalletUnlocker unlock(nc, passphrase);
-
       std::ifstream fileIn(stateFile);
       if (fileIn)
         {
           std::cout << "Reading old state." << std::endl;
           fileIn >> reg;
           fileIn.close ();
-
-          reg.update ();
-          std::cout << "Updated all processes." << std::endl;
         }
       else
         std::cout << "No old state to read, intialising empty." << std::endl;
@@ -167,41 +158,57 @@ main (int argc, char** argv)
           const unsigned cleaned = reg.cleanUp ();
           std::cout << "Removed " << cleaned << " finished names." << std::endl;
         }
-      else if (command == "register")
-        {
-          if (argc != 5)
-            throw std::runtime_error ("Expected: nmreg register"
-                                      " FILE NAME VALUE");
-
-          const std::string name = argv[3];
-          const std::string val = argv[4];
-
-          doRegister (reg, nc, name, val);
-        }
-      else if (command == "multi") 
-        {
-          if (argc != 5)
-            throw std::runtime_error ("Expected: nmreg multi"
-                                      " FILE LIST-FILE VALUE");
-
-          const std::string listFile = argv[3];
-          const std::string val = argv[4];
-
-          std::ifstream listIn(listFile);
-          if (!listIn)
-            throw std::runtime_error ("Could not read list of names.");
-
-          while (listIn)
-            {
-              std::string line;
-              std::getline (listIn, line);
-
-              if (!line.empty ())
-                doRegister (reg, nc, line, val);
-            }
-        }
       else
-        throw std::runtime_error ("Unknown command '" + command + "'.");
+        {
+          std::string passphrase;
+          if (nc.needWalletPassphrase ())
+            {
+              std::cout << "Enter wallet passphrase: ";
+              std::getline (std::cin, passphrase);
+            }
+          NamecoinInterface::WalletUnlocker unlock(nc, passphrase);
+
+          if (command == "update")
+            {
+              reg.update ();
+              std::cout << "Updated all processes." << std::endl;
+            }
+          else if (command == "register")
+            {
+              if (argc != 5)
+                throw std::runtime_error ("Expected: nmreg register"
+                                          " FILE NAME VALUE");
+
+              const std::string name = argv[3];
+              const std::string val = argv[4];
+
+              doRegister (reg, nc, name, val);
+            }
+          else if (command == "multi") 
+            {
+              if (argc != 5)
+                throw std::runtime_error ("Expected: nmreg multi"
+                                          " FILE LIST-FILE VALUE");
+
+              const std::string listFile = argv[3];
+              const std::string val = argv[4];
+
+              std::ifstream listIn(listFile);
+              if (!listIn)
+                throw std::runtime_error ("Could not read list of names.");
+
+              while (listIn)
+                {
+                  std::string line;
+                  std::getline (listIn, line);
+
+                  if (!line.empty ())
+                    doRegister (reg, nc, line, val);
+                }
+            }
+          else
+            throw std::runtime_error ("Unknown command '" + command + "'.");
+        }
 
       std::ofstream fileOut(stateFile);
       fileOut << reg;
