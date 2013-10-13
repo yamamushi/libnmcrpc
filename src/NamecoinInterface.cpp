@@ -31,7 +31,7 @@ namespace nmcrpc
 /* ************************************************************************** */
 /* High-level interface to Namecoin.  */
 
-const unsigned NamecoinInterface::UNLOCK_SECONDS = 10;
+const unsigned NamecoinInterface::UNLOCK_SECONDS = 3600;
 
 /**
  * Query for an address by string.  This immediately checks whether the
