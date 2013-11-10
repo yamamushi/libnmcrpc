@@ -58,6 +58,29 @@ displayHelp ()
 }
 
 /**
+ * Read file into list of names.
+ * @param fileName Name of file to read in.
+ * @param names Store names here.
+ * @throws std::runtime_error if reading fails.
+ */
+static void
+readNames (const std::string& fileName, std::vector<std::string>& names)
+{
+  std::ifstream in(fileName);
+  if (!in)
+    throw std::runtime_error ("Could not read list of names.");
+
+  while (in)
+    {
+      std::string line;
+      std::getline (in, line);
+
+      if (!line.empty ())
+        names.push_back (line);
+    }
+}
+
+/**
  * Perform a name update operation on an array of names.
  * @param rpc Json RPC connection.
  * @param nc Namecoin high-level interface.
@@ -160,6 +183,20 @@ main (int argc, char** argv)
                 val = argv[3];
 
               names.push_back (name);
+              performUpdate (rpc, nc, names, argc == 4, val);
+            }
+          else if (command == "update-multi")
+            {
+              if (argc < 3 || argc > 4)
+                throw std::runtime_error ("Expected: nmupdate update-multi"
+                                          " FILE [VAL]");
+
+              const std::string file = argv[2];
+              std::string val;
+              if (argc == 4)
+                val = argv[3];
+
+              readNames (file, names);
               performUpdate (rpc, nc, names, argc == 4, val);
             }
           else
