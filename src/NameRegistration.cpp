@@ -332,4 +332,69 @@ operator>> (std::istream& in, RegistrationManager& obj)
   return in;
 }
 
+/* ************************************************************************** */
+/* Name updater.  */
+
+/**
+ * Create the object.  It sets the value per default to the value
+ * currently held at the name.
+ * @param r The RPC connection to use.
+ * @param n The high-level interface to use.
+ * @param nm The name to update.
+ * @throws NameNotFound if the name doesn't yet exist.
+ */
+NameUpdate::NameUpdate (JsonRpc& r, NamecoinInterface& n,
+                        const NamecoinInterface::Name& nm)
+  : rpc(r), nc(n), name(nm)
+{
+  value = name.getStringValue ();
+}
+
+/**
+ * Utility routine to perform the update in both cases with and without
+ * manual address.  This handles the exception catching and things like that.
+ * @param addr Address to send the name to or NULL.
+ * @returns The transaction ID.
+ * @throws NoPrivateKey if the name is not owned by the user.
+ * @throws std::runtime_error if the wallet is locked.
+ */
+std::string
+NameUpdate::internalExecute (const NamecoinInterface::Address* addr)
+{
+  try
+    {
+      JsonRpc::JsonData args(Json::arrayValue);
+      args.append (name.getName ());
+      args.append (value);
+      if (addr)
+        {
+          if (!addr->isValid ())
+            throw std::runtime_error ("Target address is invalid.");
+          args.append (addr->getAddress ());
+        }
+      const JsonRpc::JsonData res = rpc.executeRpcArray ("name_update", args);
+
+      return res.asString ();
+    }
+  catch (const JsonRpc::RpcError& exc)
+    {
+      switch (exc.getErrorCode ())
+        {
+        case -13:
+          throw std::runtime_error ("Need to unlock the wallet first.");
+
+        case -3:
+          {
+            std::ostringstream msg;
+            msg << "You don't have the private key for the name "
+                << name.getName () << " and can't update this name.";
+            throw NamecoinInterface::NoPrivateKey (msg.str ());
+          }
+
+        default:
+          throw exc;
+        }
+    }
+}
+
 } // namespace nmcrpc

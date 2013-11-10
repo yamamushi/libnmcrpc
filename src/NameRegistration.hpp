@@ -415,6 +415,97 @@ public:
 };
 
 /* ************************************************************************** */
+/* Name updater.  */
+
+/**
+ * This class can be used to do updates on names.  It is a full class rather
+ * than just a method so that one can choose whether or not to change the
+ * name's value, and whether or not to send it to some (new) address.
+ */
+class NameUpdate
+{
+
+private:
+
+  /** JSON RPC connection used.  */
+  JsonRpc& rpc;
+  /** Namecoin high-level interface.  */
+  NamecoinInterface& nc;
+
+  /** The name that is being updated.  */
+  NamecoinInterface::Name name;
+  
+  /** The value to set.  */
+  std::string value;
+
+  /**
+   * Utility routine to perform the update in both cases with and without
+   * manual address.  This handles the exception catching and things like that.
+   * @param addr Address to send the name to or NULL.
+   * @returns The transaction ID.
+   * @throws NoPrivateKey if the name is not owned by the user.
+   * @throws std::runtime_error if the wallet is locked.
+   */
+  std::string internalExecute (const NamecoinInterface::Address* addr);
+
+public:
+
+  /**
+   * Create the object.  It sets the value per default to the value
+   * currently held at the name.
+   * @param r The RPC connection to use.
+   * @param n The high-level interface to use.
+   * @param nm The name to update.
+   * @throws NameNotFound if the name doesn't yet exist.
+   */
+  NameUpdate (JsonRpc& r, NamecoinInterface& n,
+              const NamecoinInterface::Name& nm);
+
+  /* No copying or default constructor.  */
+  NameUpdate () = delete;
+  NameUpdate (const NameUpdate&) = delete;
+  NameUpdate& operator= (const NameUpdate&) = delete;
+
+  /**
+   * Set the value to a manually determined one.
+   * @param val The new value.
+   */
+  inline void
+  setValue (const std::string& val)
+  {
+    value = val;
+  }
+
+  /**
+   * Execute the name_update command without passing the optional
+   * address argument.  This sends to a automatically generated new
+   * address in the wallet.
+   * @returns The transaction ID.
+   * @throws NoPrivateKey if the name is not owned by the user.
+   * @throws std::runtime_error if the wallet is locked.
+   */
+  inline std::string
+  execute ()
+  {
+    return internalExecute (nullptr);
+  }
+
+  /**
+   * Execute the name_update command with the manually specified target address.
+   * @param addr Address to send the name to.
+   * @returns The transaction ID.
+   * @throws NoPrivateKey if the name is not owned by the user.
+   * @throws std::runtime_error if the wallet is locked.
+   */
+  inline std::string
+  execute (const NamecoinInterface::Address& addr)
+  {
+    return internalExecute (&addr);
+  }
+
+};
+
+/* ************************************************************************** */
 /* Exception classes.  */
 
 /**
