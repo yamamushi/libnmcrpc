@@ -49,7 +49,9 @@ displayHelp ()
             << std::endl;
   std::cerr << "  * send NAME ADDR [VAL]: Update NAME and send to ADDR."
             << std::endl;
-  std::cerr << "  * update-multi FILE [VAL]: Update all names in FILE to VAL or"
+  std::cerr << "  * update-multi FILE [VAL]: Update all names in FILE"
+            << std::endl
+            << "                             to VAL or"
             << " their current value." << std::endl;
   std::cerr << "  * send-multi FILE ADDR [VAL]: Send all names in FILE to ADDR."
             << std::endl;
