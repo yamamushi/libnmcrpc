@@ -37,21 +37,6 @@ namespace nmcrpc
 const unsigned NameRegistration::FIRSTUPDATE_DELAY = 12;
 
 /**
- * Utility routine to check for the number of confirmations a transaction
- * already has.  It throws the appropriate RpcError if the transaction ID
- * is not found.
- * @param txid The transaction id to check for.
- * @return Number of confirmations the transaction has.
- */
-unsigned
-NameRegistration::getNumberOfConfirmations (const std::string& txid) const
-{
-  const JsonRpc::JsonData res = rpc.executeRpc ("gettransaction", txid);
-  assert (res.isObject ());
-  return res["confirmations"].asInt ();
-}
-
-/**
  * Start registration of a name with issuing the corresponding name_new
  * transaction.
  * @param nm The name to register, as Name object.
@@ -90,7 +75,7 @@ NameRegistration::canActivate () const
   if (state != REGISTERED)
     return false;
 
-  return (getNumberOfConfirmations (tx) >= FIRSTUPDATE_DELAY);
+  return (nc.getNumberOfConfirmations (tx) >= FIRSTUPDATE_DELAY);
 }
 
 /**
@@ -128,7 +113,7 @@ NameRegistration::isFinished () const
   if (state != ACTIVATED)
     return false;
 
-  return (getNumberOfConfirmations (txActivation) > 0);
+  return (nc.getNumberOfConfirmations (txActivation) > 0);
 }
 
 /**
@@ -243,7 +228,7 @@ RegistrationManager::registerName (const NamecoinInterface::Name& nm)
 {
   std::unique_ptr<NameRegistration> ptr;
 
-  ptr.reset (new NameRegistration (rpc));
+  ptr.reset (new NameRegistration (rpc, nc));
   ptr->registerName (nm);
 
   names.push_back (ptr.release ());
@@ -339,7 +324,7 @@ operator>> (std::istream& in, RegistrationManager& obj)
       std::istringstream val(el.asString ());
       std::unique_ptr<NameRegistration> ptr;
 
-      ptr.reset (new NameRegistration (obj.rpc));
+      ptr.reset (new NameRegistration (obj.rpc, obj.nc));
       val >> *ptr;
       obj.names.push_back (ptr.release ());
     }

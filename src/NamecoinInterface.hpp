@@ -107,6 +107,14 @@ public:
   Name queryName (const std::string& ns, const std::string& name);
 
   /**
+   * Query for the number of confirmations a transaction has.
+   * @param txid The transaction id to check for.
+   * @return Number of confirmations the transaction has.
+   * @throws JsonRpc::RpcError if the tx is not found.
+   */
+  unsigned getNumberOfConfirmations (const std::string& txid);
+
+  /**
    * Check whether the wallet needs to be unlocked or not.  This routine is
    * used to decide whether we need to ask for a passphrase or not before
    * using WalletUnlocker.

@@ -43,7 +43,7 @@ main (int argc, char** argv)
       settings.readDefaultConfig ();
       JsonRpc rpc(settings);
       NamecoinInterface nc(rpc);
-      NameRegistration reg(rpc);
+      NameRegistration reg(rpc, nc);
 
       std::ifstream fileIn(fileName);
       if (fileIn)

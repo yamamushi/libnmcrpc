@@ -22,6 +22,7 @@
 
 #include "NamecoinInterface.hpp"
 
+#include <cassert>
 #include <ctime>
 #include <sstream>
 
@@ -73,6 +74,21 @@ NamecoinInterface::queryName (const std::string& ns, const std::string& name)
   std::ostringstream full;
   full << ns << "/" << name;
   return queryName (full.str ());
+}
+
+/**
+ * Query for the number of confirmations a transaction has.
+ * @param txid The transaction id to check for.
+ * @return Number of confirmations the transaction has.
+ * @throws JsonRpc::RpcError if the tx is not found.
+ */
+unsigned
+NamecoinInterface::getNumberOfConfirmations (const std::string& txid)
+{
+  const JsonRpc::JsonData res = rpc.executeRpc ("gettransaction", txid);
+  assert (res.isObject ());
+
+  return res["confirmations"].asInt ();
 }
 
 /**

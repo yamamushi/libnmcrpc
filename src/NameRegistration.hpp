@@ -72,6 +72,8 @@ private:
 
   /** Underlying RPC connection.  */
   JsonRpc& rpc;
+  /** High-level Namecoin interface.  */
+  NamecoinInterface& nc;
 
   /** Current state.  */
   State state;
@@ -95,23 +97,15 @@ private:
    */
   static const unsigned FIRSTUPDATE_DELAY;
 
-  /**
-   * Utility routine to check for the number of confirmations a transaction
-   * already has.  It throws the appropriate RpcError if the transaction ID
-   * is not found.
-   * @param txid The transaction id to check for.
-   * @return Number of confirmations the transaction has.
-   */
-  unsigned getNumberOfConfirmations (const std::string& txid) const;
-
 public:
 
   /**
    * Construct it with the given RPC connection.
    * @param r The RPC connection.
+   * @param n The high-level Namecoin interface.
    */
-  explicit inline NameRegistration (JsonRpc& r)
-    : rpc(r), state(NOT_STARTED)
+  explicit inline NameRegistration (JsonRpc& r, NamecoinInterface& n)
+    : rpc(r), nc(n), state(NOT_STARTED)
   {
     // Nothing more to be done.
   }
@@ -231,6 +225,8 @@ private:
 
   /** The RPC connection to use.  */
   JsonRpc& rpc;
+  /** The high-level Namecoin interface.  */
+  NamecoinInterface& nc;
 
   /** Type used internally to keep the list of names.  */
   typedef std::list<NameRegistration*> nameListT;
@@ -333,9 +329,10 @@ public:
   /**
    * Construct it empty.
    * @param r The RPC interface to use.
+   * @param n The high-level interface.
    */
-  inline RegistrationManager (JsonRpc& r)
-    : rpc(r), names()
+  inline RegistrationManager (JsonRpc& r, NamecoinInterface& n)
+    : rpc(r), nc(n), names()
   {
     // Nothing more to do.
   }
