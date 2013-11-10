@@ -383,7 +383,7 @@ NameUpdate::internalExecute (const NamecoinInterface::Address* addr)
         case -13:
           throw std::runtime_error ("Need to unlock the wallet first.");
 
-        case -3:
+        case -1:
           {
             std::ostringstream msg;
             msg << "You don't have the private key for the name "
