@@ -23,6 +23,7 @@
 
 #include "JsonRpc.hpp"
 
+#include <cassert>
 #include <stdexcept>
 #include <string>
 
@@ -113,6 +114,15 @@ public:
    * @throws JsonRpc::RpcError if the tx is not found.
    */
   unsigned getNumberOfConfirmations (const std::string& txid);
+
+  /**
+   * Query for all user-owned names in the wallet (according to name_list but
+   * filtering out names that have been sent away) and execute some call-back
+   * on them.
+   * @param cb Call-back routine.
+   */
+  template<typename T>
+    void forMyNames (T cb);
 
   /**
    * Check whether the wallet needs to be unlocked or not.  This routine is
@@ -535,6 +545,11 @@ public:
   UnlockFailure& operator= (const UnlockFailure&) = default;
 
 };
+
+/* ************************************************************************** */
+
+/* Include template implementations.  */
+#include "NamecoinInterface.tpp"
 
 } // namespace nmcrpc
 

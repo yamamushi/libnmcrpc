@@ -22,7 +22,6 @@
 
 #include "NamecoinInterface.hpp"
 
-#include <cassert>
 #include <ctime>
 #include <sstream>
 

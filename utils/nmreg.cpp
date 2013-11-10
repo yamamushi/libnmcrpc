@@ -121,7 +121,6 @@ main (int argc, char** argv)
         {
           displayHelp ();
           return EXIT_FAILURE;
-          throw std::runtime_error ("Usage: nmreg COMMAND [FILE] [OPTIONS]");
         }
       const std::string command = argv[1];
 
