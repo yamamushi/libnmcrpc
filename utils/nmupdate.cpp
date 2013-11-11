@@ -87,11 +87,14 @@ readNames (const std::string& fileName, std::vector<std::string>& names)
  * @param names Array of names to update.
  * @param hasVal Whether to set the value or leave it.
  * @param val The value, is ignored if !hasVal.
+ * @param hasAddr Whether to send to a specified address.
+ * @param addr Target address, ignored if !hasAddr.
  */
 static void
 performUpdate (JsonRpc& rpc, NamecoinInterface& nc,
                const std::vector<std::string>& names,
-               bool hasVal, const std::string& val)
+               bool hasVal, const std::string& val,
+               bool hasAddr, const std::string& addr)
 {
   for (const auto& nm : names)
     {
@@ -101,7 +104,12 @@ performUpdate (JsonRpc& rpc, NamecoinInterface& nc,
       NameUpdate updater (rpc, nc, name);
       if (hasVal)
         updater.setValue (val);
-      const std::string txid = updater.execute ();
+
+      std::string txid;
+      if (!hasAddr)
+        txid = updater.execute ();
+      else
+        txid = updater.execute (nc.queryAddress (addr));
 
       std::cout << txid << std::endl;
     }
@@ -183,7 +191,7 @@ main (int argc, char** argv)
                 val = argv[3];
 
               names.push_back (name);
-              performUpdate (rpc, nc, names, argc == 4, val);
+              performUpdate (rpc, nc, names, argc == 4, val, false, "");
             }
           else if (command == "update-multi")
             {
@@ -197,7 +205,37 @@ main (int argc, char** argv)
                 val = argv[3];
 
               readNames (file, names);
-              performUpdate (rpc, nc, names, argc == 4, val);
+              performUpdate (rpc, nc, names, argc == 4, val, false, "");
+            }
+          else if (command == "send")
+            {
+              if (argc < 4 || argc > 5)
+                throw std::runtime_error ("Expected: nmupdate send"
+                                          " NAME ADDR [VAL]");
+
+              const std::string name = argv[2];
+              const std::string addr = argv[3];
+              std::string val;
+              if (argc == 5)
+                val = argv[4];
+
+              names.push_back (name);
+              performUpdate (rpc, nc, names, argc == 5, val, true, addr);
+            }
+          else if (command == "send-multi")
+            {
+              if (argc < 4 || argc > 5)
+                throw std::runtime_error ("Expected: nmupdate send-multi"
+                                          " FILE ADDR [VAL]");
+
+              const std::string file = argv[2];
+              const std::string addr = argv[3];
+              std::string val;
+              if (argc == 5)
+                val = argv[4];
+
+              readNames (file, names);
+              performUpdate (rpc, nc, names, argc == 5, val, true, addr);
             }
           else
             throw std::runtime_error ("Unknown command '" + command + "'.");
