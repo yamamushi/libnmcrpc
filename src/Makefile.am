@@ -9,6 +9,6 @@ libnmcrpc_a_SOURCES = \
 
 pkgincludedir = $(includedir)/nmcrpc
 pkginclude_HEADERS = JsonRpc.hpp JsonRpc.tpp \
-  NamecoinInterface.hpp \
+  NamecoinInterface.hpp NamecoinInterface.tpp \
   NameRegistration.hpp \
   RpcSettings.hpp
