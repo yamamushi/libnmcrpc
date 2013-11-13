@@ -314,10 +314,12 @@ JsonRpc::executeRpcArray (const std::string& method, const JsonData& params)
   switch (respCode)
     {
     case 200:
-    case 401:
     case 404:
     case 500:
       break;
+
+    case 401:
+      throw HttpError ("Login credentials not accepted.", respCode);
 
     default:
       throw HttpError ("Invalid HTTP status code returned.", respCode);

@@ -65,15 +65,10 @@ NamecoinInterface::testConnection (std::string& msg)
     }
   catch (const JsonRpc::HttpError& exc)
     {
-      if (exc.getResponseCode () == 403)
-        msg = "Login credentials not accepted by namecoind.";
-      else
-        {
-          std::ostringstream res;
-          res << "HTTP-Error (" << exc.getResponseCode () << "): "
-              << exc.what ();
-          msg = res.str ();
-        }
+      std::ostringstream res;
+      res << "HTTP-Error (" << exc.getResponseCode () << "): "
+          << exc.what ();
+      msg = res.str ();
     }
   catch (const JsonRpc::Exception& exc)
     {
