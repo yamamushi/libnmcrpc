@@ -37,6 +37,13 @@ main ()
   JsonRpc rpc(settings);
   NamecoinInterface nc(rpc);
 
+  std::string testMsg;
+  bool ok = nc.testConnection (testMsg);
+  std::cout << "Test result: " << testMsg << std::endl;
+  assert (ok);
+  ok = nc.testConnection ();
+  assert (ok);
+
   NamecoinInterface::Address addr;
   addr = nc.queryAddress ("foobar-invalid-address");
   assert (!addr.isValid () && !addr.isMine ());

@@ -34,6 +34,56 @@ namespace nmcrpc
 const unsigned NamecoinInterface::UNLOCK_SECONDS = 3600;
 
 /**
+ * Run a simple test command and return whether the connection seems to
+ * be up and running.  It also produces a message that can be shown, which
+ * either includes the running version or an error string.
+ * @param msg Set this to the message string.
+ * @return True iff the connection seems to be fine.
+ */
+bool
+NamecoinInterface::testConnection (std::string& msg)
+{
+  try
+    {
+      const JsonRpc::JsonData res = rpc.executeRpc ("getinfo");
+      int version = res["version"].asInt ();
+
+      unsigned v3 = version % 100;
+      version /= 100;
+      unsigned v2 = version % 100;
+      version /= 100;
+
+      std::ostringstream msgOut;
+      msgOut << "Success!  Namecoind version "
+             << "0." << version << "." << v2;
+      if (v3 > 0)
+        msgOut << "." << v3;
+      msgOut << " running.";
+      msg = msgOut.str ();
+
+      return true;
+    }
+  catch (const JsonRpc::HttpError& exc)
+    {
+      if (exc.getResponseCode () == 403)
+        msg = "Login credentials not accepted by namecoind.";
+      else
+        {
+          std::ostringstream res;
+          res << "HTTP-Error (" << exc.getResponseCode () << "): "
+              << exc.what ();
+          msg = res.str ();
+        }
+    }
+  catch (const JsonRpc::Exception& exc)
+    {
+      msg = exc.what ();
+    }
+
+  return false;
+}
+
+/**
  * Query for an address by string.  This immediately checks whether the
  * address is valid and owned by the user, so that this information can be
  * encapsulated into the returned object.

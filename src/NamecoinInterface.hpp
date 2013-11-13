@@ -80,6 +80,26 @@ public:
   NamecoinInterface& operator= (const NamecoinInterface&) = delete;
 
   /**
+   * Run a simple test command and return whether the connection seems to
+   * be up and running.  It also produces a message that can be shown, which
+   * either includes the running version or an error string.
+   * @param msg Set this to the message string.
+   * @return True iff the connection seems to be fine.
+   */
+  bool testConnection (std::string& msg);
+
+  /**
+   * Run test command and discard message string.
+   * @return True iff the connection seems to be fine.
+   */
+  inline bool
+  testConnection ()
+  {
+    std::string msg;
+    return testConnection (msg);
+  }
+
+  /**
    * Query for an address by string.  This immediately checks whether the
    * address is valid and owned by the user, so that this information can be
    * encapsulated into the returned object.
