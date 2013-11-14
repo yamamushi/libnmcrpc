@@ -109,6 +109,12 @@ public:
   Address queryAddress (const std::string& addr);
 
   /**
+   * Create a new address (as per "getnewaddress") and return it.
+   * @return Newly created address.
+   */
+  Address createAddress ();
+
+  /**
    * Query for a name by string.  If the name is registered, this immediately
    * queries for the name's associated data.  If the name does not yet exist,
    * this still succeeds and returns a Name object that can be used to find

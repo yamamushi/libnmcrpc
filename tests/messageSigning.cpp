@@ -81,11 +81,13 @@ main ()
 
       if (signAddr == "auto")
         {
-          signAddr = rpc.executeRpc ("getaccountaddress", "").asString ();
-          std::cout << "Using signing address " << signAddr << " as test."
-                    << std::endl;
+          addr = nc.createAddress ();
+          std::cout << "Using signing address " << addr.getAddress ()
+                    << " as test." << std::endl;
         }
-      addr = nc.queryAddress (signAddr);
+      else
+        addr = nc.queryAddress (signAddr);
+
       if (addr.isValid ())
         {
           const std::string sig = addr.signMessage (testMsg);

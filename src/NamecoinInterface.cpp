@@ -92,6 +92,17 @@ NamecoinInterface::queryAddress (const std::string& addr)
 }
 
 /**
+ * Create a new address (as per "getnewaddress") and return it.
+ * @return Newly created address.
+ */
+NamecoinInterface::Address
+NamecoinInterface::createAddress ()
+{
+  const JsonRpc::JsonData addr = rpc.executeRpc ("getnewaddress");
+  return Address (rpc, addr.asString ());
+}
+
+/**
  * Query for a name by string.  If the name is registered, this immediately
  * queries for the name's associated data.  If the name does not yet exist,
  * this still succeeds and returns a Name object that can be used to find
