@@ -331,16 +331,18 @@ NamecoinInterface::WalletUnlocker::unlock (const std::string& passphrase)
   if (unlocked)
     throw std::runtime_error ("Wallet is already unlocked!");
   
-  unlocked = nc.needWalletPassphrase ();
-  if (unlocked)
+  const bool needPwd = nc.needWalletPassphrase ();
+  if (needPwd)
     {
       /* Ensure the wallet is indeed locked before we send the passphrase.
          It could be the case that it is unlocked although for too short
          a time, then lock it now.  */
       rpc.executeRpc ("walletlock");
+
       try
         {
           rpc.executeRpc ("walletpassphrase", passphrase, UNLOCK_SECONDS);
+          unlocked = true;
         }
       catch (const JsonRpc::RpcError& exc)
         {
