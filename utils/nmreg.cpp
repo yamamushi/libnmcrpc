@@ -165,7 +165,8 @@ main (int argc, char** argv)
               std::cout << "Enter wallet passphrase: ";
               std::getline (std::cin, passphrase);
             }
-          NamecoinInterface::WalletUnlocker unlock(nc, passphrase);
+          NamecoinInterface::WalletUnlocker unlock(nc);
+          unlock.unlock (passphrase);
 
           if (command == "update")
             {

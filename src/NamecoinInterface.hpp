@@ -450,6 +450,8 @@ private:
 
   /** The RPC object to use.  */
   JsonRpc& rpc;
+  /** High-level interface to use.  */
+  NamecoinInterface& nc;
 
   /** Whether we actually unlocked the wallet.  */
   bool unlocked;
@@ -457,13 +459,10 @@ private:
 public:
 
   /**
-   * Construct it, which unlocks the wallet (if necessary).  The passphrase
-   * must be correct if unlock is needed, and can be anything if it is not.
-   * @param nc The NamecoinInterface to use.
-   * @param passphrase Passphrase to use for unlocking.
-   * @throws UnlockFailure if the passphrase is wrong.
+   * Construct it, not yet unlocking.
+   * @param n The NamecoinInterface to use.
    */
-  WalletUnlocker (NamecoinInterface& nc, const std::string& passphrase);
+  explicit WalletUnlocker (NamecoinInterface& n);
 
   // No default constructor or copying.
   WalletUnlocker () = delete;
@@ -474,6 +473,14 @@ public:
    * Lock the wallet on destruct.
    */
   ~WalletUnlocker ();
+
+  /**
+   * Perform the unlock (if necessary).  The passphrase must be correct if the
+   * wallet is actually locked, and can be anything else.
+   * @param passphrase Passphrase to use for unlocking.
+   * @throws UnlockFailure if the passphrase is wrong.
+   */
+  void unlock (const std::string& passphrase);
 
 };
 

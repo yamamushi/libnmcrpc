@@ -65,7 +65,8 @@ main ()
 
   try
     {
-      NamecoinInterface::WalletUnlocker unlock(nc, passphrase);
+      NamecoinInterface::WalletUnlocker unlock(nc);
+      unlock.unlock (passphrase);
 
       addr = nc.queryAddress ("NELdJ5BTQuV6gUrxuA9L7My2Q6CyXeR3Ud");
       try

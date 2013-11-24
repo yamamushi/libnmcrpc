@@ -301,16 +301,36 @@ NamecoinInterface::Name::ensureExists () const
 /* Wallet unlocker.  */
 
 /**
- * Construct it, which unlocks the wallet (if necessary).  The passphrase
- * must be correct if unlock is needed, and can be anything if it is not.
- * @param nc The NamecoinInterface to use.
+ * Construct it, not yet unlocking.
+ * @param n The NamecoinInterface to use.
+ */
+NamecoinInterface::WalletUnlocker::WalletUnlocker (NamecoinInterface& n)
+  : rpc(n.rpc), nc(n), unlocked(false)
+{
+  // Nothing else to do.
+}
+
+/**
+ * Lock the wallet on destruct.
+ */
+NamecoinInterface::WalletUnlocker::~WalletUnlocker ()
+{
+  if (unlocked)
+    rpc.executeRpc ("walletlock");
+}
+
+/**
+ * Perform the unlock (if necessary).  The passphrase must be correct if the
+ * wallet is actually locked, and can be anything else.
  * @param passphrase Passphrase to use for unlocking.
  * @throws UnlockFailure if the passphrase is wrong.
  */
-NamecoinInterface::WalletUnlocker::WalletUnlocker
-  (NamecoinInterface& nc, const std::string& passphrase)
-  : rpc(nc.rpc)
+void
+NamecoinInterface::WalletUnlocker::unlock (const std::string& passphrase)
 {
+  if (unlocked)
+    throw std::runtime_error ("Wallet is already unlocked!");
+  
   unlocked = nc.needWalletPassphrase ();
   if (unlocked)
     {
@@ -329,15 +349,6 @@ NamecoinInterface::WalletUnlocker::WalletUnlocker
           throw exc;
         }
     }
-}
-
-/**
- * Lock the wallet on destruct.
- */
-NamecoinInterface::WalletUnlocker::~WalletUnlocker ()
-{
-  if (unlocked)
-    rpc.executeRpc ("walletlock");
 }
 
 } // namespace nmcrpc
