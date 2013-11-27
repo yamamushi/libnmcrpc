@@ -334,6 +334,12 @@ NamecoinInterface::WalletUnlocker::unlock (const std::string& passphrase)
   const bool needPwd = nc.needWalletPassphrase ();
   if (needPwd)
     {
+      /* Empty password is a special case, because it is not handled correctly
+         by the walletpassphrase RPC call.  Thus catch this case right now
+         and fail as if the passphrase would have been wrong.  */
+      if (passphrase.empty ())
+        throw UnlockFailure ("Wallet passphrase cannot be empty.");
+
       /* Ensure the wallet is indeed locked before we send the passphrase.
          It could be the case that it is unlocked although for too short
          a time, then lock it now.  */
