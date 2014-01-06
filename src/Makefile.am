@@ -1,7 +1,7 @@
-lib_LIBRARIES = libnmcrpc.a
+lib_LTLIBRARIES = libnmcrpc.la
 
-libnmcrpc_a_CXXFLAGS = -std=c++11 -pedantic -Wall -Wextra
-libnmcrpc_a_SOURCES = \
+libnmcrpc_la_CXXFLAGS = -std=c++11 -pedantic -Wall -Wextra
+libnmcrpc_la_SOURCES = \
   JsonRpc.cpp \
   NamecoinInterface.cpp \
   NameRegistration.cpp \
