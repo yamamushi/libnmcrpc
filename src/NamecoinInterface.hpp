@@ -1,5 +1,5 @@
 /*  Namecoin RPC library.
- *  Copyright (C) 2013  Daniel Kraft <d@domob.eu>
+ *  Copyright (C) 2013-2014  Daniel Kraft <d@domob.eu>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Affero General Public License as published by
@@ -149,6 +149,14 @@ public:
    */
   template<typename T>
     void forMyNames (T cb);
+
+  /**
+   * Query for all names in the index (according to name_scan) and execute
+   * some call-back on them.
+   * @param cb Call-back routine.
+   */
+  template<typename T>
+    void forAllNames (T cb);
 
   /**
    * Check whether the wallet needs to be unlocked or not.  This routine is

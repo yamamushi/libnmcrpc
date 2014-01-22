@@ -1,5 +1,5 @@
 /*  Namecoin RPC library.
- *  Copyright (C) 2013  Daniel Kraft <d@domob.eu>
+ *  Copyright (C) 2013-2014  Daniel Kraft <d@domob.eu>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Affero General Public License as published by
@@ -40,5 +40,61 @@ template<typename T>
       NamecoinInterface::Name nm = queryName (val["name"].asString ());
       if (nm.getAddress ().isMine ())
         cb (nm);
+    }
+}
+
+/**
+ * Query for all names in the index (according to name_scan) and execute
+ * some call-back on them.
+ * @param cb Call-back routine.
+ */
+template<typename T>
+  void
+  NamecoinInterface::forAllNames (T cb)
+{
+  static const unsigned CNT = 5000;
+
+  std::string last;
+  bool haveLast = false;
+  while (true)
+    {
+      JsonRpc::JsonData res;
+      Json::ArrayIndex firstInd;
+      if (haveLast)
+        {
+          res = rpc.executeRpc ("name_scan", last, CNT);
+          assert (res.isArray () && res.size () > 0);
+          assert (res[0].isObject ());
+          assert (res[0]["name"].asString () == last);
+
+          /* FIXME: There are some unicode names in the blockchain, for which
+             the above assertion fails if they are hit as last names in a scan.
+             As a work-around, choosing CNT large enough helps for now, but
+             of course this is only a very crude fix!  */
+
+          firstInd = 1;
+        }
+      else
+        {
+          res = rpc.executeRpc ("name_scan");
+          assert (res.isArray ());
+          firstInd = 0;
+        }
+
+      assert (res.size () >= firstInd);
+      if (firstInd == res.size ())
+        break;
+
+      for (auto i = firstInd; i < res.size (); ++i)
+        {
+          assert (res[i].isObject ());
+          const std::string name = res[i]["name"].asString ();
+
+          /* FIXME: Update call-back interface.  */
+          cb (name);
+        }
+
+      last = res[res.size () - 1]["name"].asString ();
+      haveLast = true;
     }
 }
