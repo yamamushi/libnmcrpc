@@ -1,5 +1,5 @@
 /*  Namecoin RPC library.
- *  Copyright (C) 2013  Daniel Kraft <d@domob.eu>
+ *  Copyright (C) 2013-2014  Daniel Kraft <d@domob.eu>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Affero General Public License as published by
@@ -20,6 +20,7 @@
 
 /* Utility program to register Namecoin names using libnmcrpc.  */
 
+#include "IdnTool.hpp"
 #include "JsonRpc.hpp"
 #include "NamecoinInterface.hpp"
 #include "NameRegistration.hpp"
@@ -41,6 +42,8 @@ displayHelp ()
             << std::endl << std::endl;
   std::cerr << "Possible commands:" << std::endl;
   std::cerr << "  * help: Display this message." << std::endl;
+  std::cerr << "  * check: Show status information about each name in FILE."
+            << std::endl;
   std::cerr << "  * info: Show information about the state in FILE."
             << std::endl;
   std::cerr << "  * update: Update all processes in FILE if possible."
@@ -102,11 +105,67 @@ static void
 doRegister (RegistrationManager& reg, NamecoinInterface& nc,
             const std::string& name, const std::string& val)
 {
-  const NamecoinInterface::Name nm = nc.queryName (name);
+  IdnTool idn(true);
+  const std::string idnName = idn.encode (name);
+
+  const NamecoinInterface::Name nm = nc.queryName (idnName);
   NameRegistration& cur = reg.registerName (nm);
   cur.setValue (val);
 
   std::cout << "Started registration of " << name << "." << std::endl;
+}
+
+/**
+ * Check the status (found, not found, expired) of a list of names in the given
+ * file and print it out for each one.
+ * @param nc Namecoin interface to use.
+ * @param file File name to check.
+ */
+static void
+doCheck (NamecoinInterface& nc, const std::string& file)
+{
+  std::ifstream listIn(file);
+  if (!listIn)
+    throw std::runtime_error ("Could not read list of names.");
+
+  IdnTool idn(true);
+  unsigned found, notFound;
+  found = notFound = 0;
+  while (listIn)
+    {
+      std::string line;
+      std::getline (listIn, line);
+
+      if (!line.empty ())
+        {
+          const std::string idnName = idn.encode (line);
+          const NamecoinInterface::Name nm = nc.queryName (idnName);
+
+          std::cout.width (30);
+          std::cout << nm.getName () << ": ";
+
+          if (!nm.exists ())
+            {
+              ++notFound;
+              std::cout << "not found";
+            }
+          else if (!nm.isExpired ())
+            {
+              ++found;
+              std::cout << "found (expires in "
+                        << nm.getExpireCounter () << ")";
+            }
+          else
+            {
+              ++notFound;
+              std::cout << "expired (since " << -nm.getExpireCounter () << ")";
+            }
+
+          std::cout << std::endl;
+        }
+    }
+  
+  std::cout << found << " found, " << notFound << " available." << std::endl;
 }
 
 /**
@@ -130,14 +189,24 @@ main (int argc, char** argv)
           return EXIT_SUCCESS;
         }
 
-      if (argc < 3)
-        throw std::runtime_error ("Need FILE argument.");
-      const std::string stateFile = argv[2];
-
       RpcSettings settings;
       settings.readDefaultConfig ();
       JsonRpc rpc(settings);
       NamecoinInterface nc(rpc);
+
+      if (command == "check")
+        {
+          if (argc != 3)
+            throw std::runtime_error ("Expected: nmreg check FILE");
+
+          doCheck (nc, argv[2]);
+          return EXIT_SUCCESS;
+        }
+
+      if (argc < 3)
+        throw std::runtime_error ("Need FILE argument.");
+      const std::string stateFile = argv[2];
+
       RegistrationManager reg(rpc, nc);
 
       std::ifstream fileIn(stateFile);
