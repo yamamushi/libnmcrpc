@@ -13,8 +13,10 @@ is on Namecoin.
 
 For building libnmcrpc, you need cURL [1] installed (for GNU/Linux systems
 you need the -dev package) as well as JsonCpp, which can be found at [2].
+For the IDN functionality, also libidn [3] is necessary.
 
   [1] http://curl.haxx.se/
   [2] http://jsoncpp.sourceforge.net/
+  [3] https://www.gnu.org/software/libidn/
 
 See AUTHORS for how to contact me in case of comments or questions.
