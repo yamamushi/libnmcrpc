@@ -28,6 +28,21 @@
 
 using namespace nmcrpc;
 
+/**
+ * Perform a round-trip test.  That is, decode IDN and encode it back, and
+ * check that the strings match up.
+ * @param idn IDN tool object to use.
+ * @param str String to decode and re-encode.
+ */
+void
+roundtrip (IdnTool& idn, const std::string& str)
+{
+  const std::string dec = idn.decode (str);
+  const std::string enc = idn.encode (dec);
+
+  assert (str == enc);
+}
+
 int
 main ()
 {
@@ -42,6 +57,12 @@ main ()
 
   strOut = idn.decode (strEnc);
   std::cout << "Decoded: " << strOut << std::endl;
+
+  roundtrip (idn, "d/xn--mnchen-3ya");
+  roundtrip (idn, "xn--mnchen-3ya");
+  roundtrip (idn, "d/foobar");
+  roundtrip (idn, "foobar");
+  roundtrip (idn, "id/xn--danielines-v5a0tyc");
 
   return EXIT_SUCCESS;
 }
