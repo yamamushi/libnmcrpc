@@ -31,16 +31,16 @@ using namespace nmcrpc;
 int
 main ()
 {
-  IdnTool idn;
+  IdnTool idn(true);
   std::string strIn, strEnc, strOut;
 
   std::cout << "Enter string: ";
   std::cin >> strIn;
 
-  strEnc = idn.encodeFull (strIn);
+  strEnc = idn.encode (strIn);
   std::cout << "Encoded: " << strEnc << std::endl;
 
-  strOut = idn.decodeFull (strEnc);
+  strOut = idn.decode (strEnc);
   std::cout << "Decoded: " << strOut << std::endl;
 
   return EXIT_SUCCESS;

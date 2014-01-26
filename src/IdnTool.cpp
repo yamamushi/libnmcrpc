@@ -22,6 +22,8 @@
 
 #include "IdnTool.hpp"
 
+#include "NamecoinInterface.hpp"
+
 #include <idna.h>
 #include <stringprep.h>
 
@@ -35,11 +37,14 @@ namespace nmcrpc
 {
 
 /**
- * Default constructor.  Currently, we have no settings and thus
- * need no parameters.  However, it calls setlocale() to properly set
- * up the locale settings from the environment.
+ * Default constructor.  Allow to specify whether or not to handle
+ * namespaces, default is true.
+ * Also call setlocale() to properly set up the locale settings
+ * from the environment.
+ * @param ns Handle namespaces for codings?
  */
-IdnTool::IdnTool ()
+IdnTool::IdnTool (bool ns)
+  : handleNS(ns)
 {
   std::setlocale (LC_ALL, "");
 }
@@ -51,7 +56,7 @@ IdnTool::IdnTool ()
  * @return Decoded output string.
  */
 std::string
-IdnTool::decodeFull (const std::string& in)
+IdnTool::decodeFull (const std::string& in) const
 {
   char* buf = nullptr;
 
@@ -81,7 +86,7 @@ IdnTool::decodeFull (const std::string& in)
  * @return IDN encoded output string.
  */
 std::string
-IdnTool::encodeFull (const std::string& in)
+IdnTool::encodeFull (const std::string& in) const
 {
   char* buf = nullptr;
 
@@ -102,6 +107,54 @@ IdnTool::encodeFull (const std::string& in)
   std::free (buf);
 
   return res;
+}
+
+/**
+ * Decode IDN string to local encoding.  According to handleNS setting,
+ * possibly split off a namespace before coding.
+ * @param in Input string in IDN encoding.
+ * @return Decoded string in local encoding.
+ */
+std::string
+IdnTool::decode (const std::string& in) const
+{
+  if (!handleNS)
+    return decodeFull (in);
+
+  std::string ns, trimmed;
+  const bool hasNS = NamecoinInterface::Name::split (in, ns, trimmed);
+  if (!hasNS)
+    return decodeFull (in);
+
+  trimmed = decodeFull (trimmed);
+  std::ostringstream buf;
+  buf << ns << '/' << trimmed;
+
+  return buf.str ();
+}
+
+/**
+ * Encode string in local encoding to IDN.  According to handleNS setting,
+ * possibly split off a namespace before coding.
+ * @param in Input string in local encoding.
+ * @return IDN encoded string.
+ */
+std::string
+IdnTool::encode (const std::string& in) const
+{
+  if (!handleNS)
+    return encodeFull (in);
+
+  std::string ns, trimmed;
+  const bool hasNS = NamecoinInterface::Name::split (in, ns, trimmed);
+  if (!hasNS)
+    return encodeFull (in);
+
+  trimmed = encodeFull (trimmed);
+  std::ostringstream buf;
+  buf << ns << '/' << trimmed;
+
+  return buf.str ();
 }
 
 } // namespace nmcrpc

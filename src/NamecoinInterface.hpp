@@ -439,6 +439,16 @@ public:
     return data["expires_in"].asInt ();
   }
 
+  /**
+   * Utility routine to split a name into namespace and trimmed parts.
+   * @param name The full name.
+   * @param ns Set to namespace part.
+   * @param trimmed Set to trimmed part.
+   * @return True if splitting was successful, false if there's no namespace.
+   */
+  static bool split (const std::string& name,
+                     std::string& ns, std::string& trimmed);
+
 };
 
 /* ************************************************************************** */

@@ -33,18 +33,10 @@ namespace nmcrpc
 class IdnTool
 {
 
-public:
-
-  /**
-   * Default constructor.  Currently, we have no settings and thus
-   * need no parameters.  However, it calls setlocale() to properly set
-   * up the locale settings from the environment.
-   */
-  IdnTool ();
-
-  // Allow copying.
-  IdnTool (const IdnTool&) = default;
-  IdnTool& operator= (const IdnTool&) = default;
+private:
+  
+  /** Whether or not to split off namespaces.  */
+  bool handleNS;
 
   /**
    * Decode IDN to native locale string.  This routine handles the full string
@@ -52,7 +44,7 @@ public:
    * @param in Input string, encoded as IDN.
    * @return Decoded output string.
    */
-  std::string decodeFull (const std::string& in);
+  std::string decodeFull (const std::string& in) const;
 
   /**
    * Encode a native string to IDN.  Handle the full string and do not split
@@ -60,7 +52,49 @@ public:
    * @param in Input string in native locale encoding.
    * @return IDN encoded output string.
    */
-  std::string encodeFull (const std::string& in);
+  std::string encodeFull (const std::string& in) const;
+
+public:
+
+  /**
+   * Default constructor.  Allow to specify whether or not to handle
+   * namespaces, default is true.
+   * Also call setlocale() to properly set up the locale settings
+   * from the environment.
+   * @param ns Handle namespaces for codings?
+   */
+  IdnTool (bool ns = true);
+
+  // Allow copying.
+  IdnTool (const IdnTool&) = default;
+  IdnTool& operator= (const IdnTool&) = default;
+
+  /**
+   * Set namespace setting.  If set to true, decode() and encode() will
+   * split off a namespace prefix if one is present before performing
+   * the coding.
+   * @param ns New setting.
+   */
+  inline void handleNamespace (bool ns)
+  {
+    handleNS = ns;
+  }
+
+  /**
+   * Decode IDN string to local encoding.  According to handleNS setting,
+   * possibly split off a namespace before coding.
+   * @param in Input string in IDN encoding.
+   * @return Decoded string in local encoding.
+   */
+  std::string decode (const std::string& in) const;
+
+  /**
+   * Encode string in local encoding to IDN.  According to handleNS setting,
+   * possibly split off a namespace before coding.
+   * @param in Input string in local encoding.
+   * @return IDN encoded string.
+   */
+  std::string encode (const std::string& in) const;
 
 };
 

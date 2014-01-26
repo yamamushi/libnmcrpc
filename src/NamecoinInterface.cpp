@@ -297,6 +297,27 @@ NamecoinInterface::Name::ensureExists () const
     throw NameNotFound (name);
 }
 
+/**
+ * Utility routine to split a name into namespace and trimmed parts.
+ * @param name The full name.
+ * @param ns Set to namespace part.
+ * @param trimmed Set to trimmed part.
+ * @return True if splitting was successful, false if there's no namespace.
+ */
+bool
+NamecoinInterface::Name::split (const std::string& name,
+                                std::string& ns, std::string& trimmed)
+{
+  const auto pos = name.find ('/');
+  if (pos == std::string::npos)
+    return false;
+
+  ns = name.substr (0, pos);
+  trimmed = name.substr (pos + 1);
+
+  return true;
+}
+
 /* ************************************************************************** */
 /* Wallet unlocker.  */
 
