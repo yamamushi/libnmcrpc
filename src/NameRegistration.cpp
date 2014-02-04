@@ -1,5 +1,5 @@
 /*  Namecoin RPC library.
- *  Copyright (C) 2013  Daniel Kraft <d@domob.eu>
+ *  Copyright (C) 2013-2014  Daniel Kraft <d@domob.eu>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Affero General Public License as published by
@@ -63,6 +63,21 @@ NameRegistration::registerName (const NamecoinInterface::Name& nm)
   /* Update state as last action, so that it is not changed if some action
      above throws.  */
   state = REGISTERED;
+}
+
+/**
+ * Return rand value.
+ * @return rand value.
+ * @throws std::runtime_error if this is not in REGISTERED state.
+ */
+const std::string&
+NameRegistration::getRand () const
+{
+  if (state != REGISTERED)
+    throw std::runtime_error ("rand value is only available"
+                              " in REGISTERED state.");
+
+  return rand;
 }
 
 /**

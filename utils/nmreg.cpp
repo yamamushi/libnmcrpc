@@ -112,7 +112,8 @@ doRegister (RegistrationManager& reg, NamecoinInterface& nc,
   NameRegistration& cur = reg.registerName (nm);
   cur.setValue (val);
 
-  std::cout << "Started registration of " << name << "." << std::endl;
+  std::cout << "Started registration of " << name << ": "
+            << cur.getRand () << std::endl;
 }
 
 /**
