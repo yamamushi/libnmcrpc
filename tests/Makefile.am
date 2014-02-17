@@ -4,7 +4,7 @@ LDADD = $(top_builddir)/src/libnmcrpc.la -lcurl -ljsoncpp
 AM_CPPFLAGS += $(LIBIDN_CFLAGS)
 LDADD += $(LIBIDN_LIBS)
 
-check_PROGRAMS = jsonrpc basicInfo messageSigning nameList idn
+check_PROGRAMS = jsonrpc basicInfo messageSigning idn
 TESTS = $(check_PROGRAMS)
 
 basicInfo_SOURCES = basicInfo.cpp
