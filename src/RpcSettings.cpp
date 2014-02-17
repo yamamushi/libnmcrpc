@@ -1,5 +1,5 @@
 /*  Namecoin RPC library.
- *  Copyright (C) 2013  Daniel Kraft <d@domob.eu>
+ *  Copyright (C) 2013-2014  Daniel Kraft <d@domob.eu>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Affero General Public License as published by
@@ -37,7 +37,7 @@ namespace nmcrpc
 void
 RpcSettings::readConfig (const std::string& filename)
 {
-  std::ifstream in(filename);
+  std::ifstream in(filename.c_str ());
 
   /* We're going to ignore all errors, since this is just a "best try"
      approach to configuration guessing anyway.  */
@@ -47,7 +47,7 @@ RpcSettings::readConfig (const std::string& filename)
       std::string line;
       std::getline (in, line);
 
-      const auto equalPos = line.find ('=');
+      const std::string::size_type equalPos = line.find ('=');
       if (equalPos != std::string::npos)
         {
           const std::string before(line, 0, equalPos);

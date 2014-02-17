@@ -1,5 +1,5 @@
 /*  Namecoin RPC library.
- *  Copyright (C) 2013  Daniel Kraft <d@domob.eu>
+ *  Copyright (C) 2013-2014  Daniel Kraft <d@domob.eu>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Affero General Public License as published by
@@ -73,8 +73,10 @@ public:
   }
 
   // Allow copying.
+#ifdef CXX_11
   RpcSettings (const RpcSettings&) = default;
   RpcSettings& operator= (const RpcSettings&) = default;
+#endif /* CXX_11?  */
 
   /**
    * Try to read the given input file and update settings when corresponding
