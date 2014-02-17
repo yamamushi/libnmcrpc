@@ -29,6 +29,7 @@
 
 #include <cassert>
 #include <clocale>
+#include <cstdlib>
 #include <cstring>
 #include <sstream>
 #include <stdexcept>
@@ -60,7 +61,7 @@ IdnTool::decodeFull (const std::string& in) const
 {
   char* buf = nullptr;
 
-  const auto flags = static_cast<Idna_flags> (0);
+  const Idna_flags flags = static_cast<Idna_flags> (0);
   Idna_rc rc;
   rc = static_cast<Idna_rc> (idna_to_unicode_lzlz (in.c_str (), &buf, flags));
 
@@ -90,7 +91,7 @@ IdnTool::encodeFull (const std::string& in) const
 {
   char* buf = nullptr;
 
-  const auto flags = static_cast<Idna_flags> (0);
+  const Idna_flags flags = static_cast<Idna_flags> (0);
   Idna_rc rc;
   rc = static_cast<Idna_rc> (idna_to_ascii_lz (in.c_str (), &buf, flags));
 
