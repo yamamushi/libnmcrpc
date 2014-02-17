@@ -1,5 +1,5 @@
 /*  Namecoin RPC library.
- *  Copyright (C) 2013  Daniel Kraft <d@domob.eu>
+ *  Copyright (C) 2013-2014  Daniel Kraft <d@domob.eu>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Affero General Public License as published by
@@ -57,6 +57,12 @@ private:
   /** Store response body here.  */
   std::string response;
 
+  // Disable copying.
+#ifdef CXX_03
+  CurlPost (const CurlPost& o);
+  CurlPost& operator= (const CurlPost& o);
+#endif /* CXX_03?  */
+
   /**
    * Write function for cURL.
    * @param buf Buffer containing data.
@@ -80,8 +86,10 @@ public:
   }
 
   // No copying.
+#ifdef CXX_11
   CurlPost (const CurlPost& o) = delete;
   CurlPost& operator= (const CurlPost& o) = delete;
+#endif /* CXX_11?  */
 
   /**
    * Destory, which cleans up the cURL connection.

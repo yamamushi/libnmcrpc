@@ -1,5 +1,5 @@
 /*  Namecoin RPC library.
- *  Copyright (C) 2013  Daniel Kraft <d@domob.eu>
+ *  Copyright (C) 2013-2014  Daniel Kraft <d@domob.eu>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Affero General Public License as published by
@@ -36,8 +36,13 @@ template<typename L>
   JsonRpc::executeRpcList (const std::string& method, const L& params)
 {
   JsonData arr(Json::arrayValue);
+#ifdef CXX_11
   for (const auto& elem : params)
-    arr.append (JsonData(elem));
+    arr.append (JsonData (elem));
+#else /* CXX_11?  */
+  for (typename L::const_iterator i = params.begin (); i != params.end (); ++i)
+    arr.append (JsonData (*i));
+#endif /* CXX_11?  */
 
   return executeRpcArray (method, arr);
 }

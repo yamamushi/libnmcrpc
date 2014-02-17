@@ -1,5 +1,5 @@
 /*  Namecoin RPC library.
- *  Copyright (C) 2013  Daniel Kraft <d@domob.eu>
+ *  Copyright (C) 2013-2014  Daniel Kraft <d@domob.eu>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Affero General Public License as published by
@@ -62,6 +62,13 @@ private:
   /** The next ID to use for JSON-RPC queries.  */
   unsigned nextId;
 
+  // Disable copying.
+#ifdef CXX_03
+  JsonRpc ();
+  JsonRpc (const JsonRpc&);
+  JsonRpc& operator= (const JsonRpc&);
+#endif /* CXX_03?  */
+
   /**
    * Perform a HTTP query with JSON data.  However, this routine does not
    * know/care about JSON, it just sends the raw string and returns the
@@ -87,9 +94,11 @@ public:
   }
 
   // We want no default constructor or copying.
+#ifdef CXX_11
   JsonRpc () = delete;
   JsonRpc (const JsonRpc&) = delete;
   JsonRpc& operator= (const JsonRpc&) = delete;
+#endif /* CXX_11?  */
 
   /**
    * Decode JSON from a string.
@@ -186,6 +195,13 @@ public:
 class JsonRpc::Exception : public std::runtime_error
 {
 
+private:
+
+  // Disable default constructor.
+#ifdef CXX_03
+  Exception ();
+#endif /* CXX_03?  */
+
 public:
 
   /**
@@ -199,9 +215,11 @@ public:
   }
 
   /* No default constructor, but copying ok.  */
+#ifdef CXX_11
   Exception () = delete;
   Exception (const Exception&) = default;
   Exception& operator= (const Exception&) = default;
+#endif /* CXX_11?  */
 
 };
 
@@ -210,6 +228,13 @@ public:
  */
 class JsonRpc::JsonParseError : public JsonRpc::Exception
 {
+
+private:
+
+  // Disable default constructor.
+#ifdef CXX_03
+  JsonParseError ();
+#endif /* CXX_03?  */
 
 public:
 
@@ -224,9 +249,11 @@ public:
   }
 
   /* No default constructor, but copying ok.  */
+#ifdef CXX_11
   JsonParseError () = delete;
   JsonParseError (const JsonParseError&) = default;
   JsonParseError& operator= (const JsonParseError&) = default;
+#endif /* CXX_11?  */
 
 };
 
@@ -240,6 +267,11 @@ private:
 
   /** The response code.  */
   unsigned code;
+
+  // Disable copy constructor.
+#ifdef CXX_03
+  HttpError ();
+#endif /* CXX_03?  */
 
 public:
 
@@ -255,9 +287,11 @@ public:
   }
 
   /* Default copying, no default constructor.  */
+#ifdef CXX_11
   HttpError () = delete;
   HttpError (const HttpError&) = default;
   HttpError& operator= (const HttpError&) = default;
+#endif /* CXX_11?  */
 
   /**
    * Query HTTP response code.
@@ -285,6 +319,11 @@ private:
   /** Error message (from RPC).  */
   std::string message;
 
+  // Disable default constructor.
+#ifdef CXX_03
+  RpcError ();
+#endif /* CXX_03?  */
+
 public:
 
   /**
@@ -300,9 +339,17 @@ public:
   }
 
   /* No default constructor but copying allowed.  */
+#ifdef CXX_11
   RpcError () = delete;
   RpcError (const RpcError&) = default;
   RpcError& operator= (const RpcError&) = default;
+#endif /* CXX_11?  */
+
+  // Set explicit throw() for destructor in C++03 mode.
+#ifdef CXX_03
+  inline ~RpcError () throw ()
+  {}
+#endif /* CXX_03?  */
 
   /**
    * Get the error code.
