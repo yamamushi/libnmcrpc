@@ -63,11 +63,11 @@ private:
   unsigned nextId;
 
   // Disable copying.
-#ifdef CXX_03
+#ifndef CXX_11
   JsonRpc ();
   JsonRpc (const JsonRpc&);
   JsonRpc& operator= (const JsonRpc&);
-#endif /* CXX_03?  */
+#endif /* !CXX_11  */
 
   /**
    * Perform a HTTP query with JSON data.  However, this routine does not
@@ -198,9 +198,9 @@ class JsonRpc::Exception : public std::runtime_error
 private:
 
   // Disable default constructor.
-#ifdef CXX_03
+#ifndef CXX_11
   Exception ();
-#endif /* CXX_03?  */
+#endif /* !CXX_11  */
 
 public:
 
@@ -232,9 +232,9 @@ class JsonRpc::JsonParseError : public JsonRpc::Exception
 private:
 
   // Disable default constructor.
-#ifdef CXX_03
+#ifndef CXX_11
   JsonParseError ();
-#endif /* CXX_03?  */
+#endif /* !CXX_11  */
 
 public:
 
@@ -269,9 +269,9 @@ private:
   unsigned code;
 
   // Disable copy constructor.
-#ifdef CXX_03
+#ifndef CXX_11
   HttpError ();
-#endif /* CXX_03?  */
+#endif /* !CXX_11  */
 
 public:
 
@@ -320,9 +320,9 @@ private:
   std::string message;
 
   // Disable default constructor.
-#ifdef CXX_03
+#ifndef CXX_11
   RpcError ();
-#endif /* CXX_03?  */
+#endif /* !CXX_11  */
 
 public:
 
@@ -346,10 +346,10 @@ public:
 #endif /* CXX_11?  */
 
   // Set explicit throw() for destructor in C++03 mode.
-#ifdef CXX_03
+#ifndef CXX_11
   inline ~RpcError () throw ()
   {}
-#endif /* CXX_03?  */
+#endif /* !CXX_11  */
 
   /**
    * Get the error code.

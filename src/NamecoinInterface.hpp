@@ -63,11 +63,11 @@ private:
   static const unsigned UNLOCK_SECONDS;
 
   // Disable copying and default constructor.
-#ifdef CXX_03
+#ifndef CXX_11
   NamecoinInterface ();
   NamecoinInterface (const NamecoinInterface&);
   NamecoinInterface& operator= (const NamecoinInterface&);
-#endif /* CXX_03?  */
+#endif /* !CXX_11  */
 
 public:
 
@@ -488,11 +488,11 @@ private:
   bool unlocked;
 
   // Disable copying and default constructor.
-#ifdef CXX_03
+#ifndef CXX_11
   WalletUnlocker ();
   WalletUnlocker (const WalletUnlocker&);
   WalletUnlocker& operator= (const WalletUnlocker&);
-#endif /* CXX_03?  */
+#endif /* !CXX_11  */
 
 public:
 
@@ -539,9 +539,9 @@ private:
   std::string name;
 
   // Disable default constructor.
-#ifdef CXX_03
+#ifndef CXX_11
   NameNotFound ();
-#endif /* CXX_03?  */
+#endif /* !CXX_11  */
 
 public:
 
@@ -563,10 +563,10 @@ public:
 #endif /* CXX_11?  */
 
   // Specify throw() explicitly.
-#ifdef CXX_03
+#ifndef CXX_11
   inline ~NameNotFound () throw ()
   {}
-#endif /* CXX_03?  */
+#endif /* !CXX_11  */
 
   /**
    * Get the name of this error.
@@ -590,9 +590,9 @@ class NamecoinInterface::NoPrivateKey : public std::runtime_error
 private:
 
   // Disable default constructor.
-#ifdef CXX_03
+#ifndef CXX_11
   NoPrivateKey ();
-#endif /* CXX_03?  */
+#endif /* !CXX_11  */
 
 public:
 
@@ -625,9 +625,9 @@ class NamecoinInterface::UnlockFailure : public std::runtime_error
 private:
 
   // Disable default constructor.
-#ifdef CXX_03
+#ifndef CXX_11
   UnlockFailure ();
-#endif /* CXX_03?  */
+#endif /* !CXX_11  */
 
 public:
 

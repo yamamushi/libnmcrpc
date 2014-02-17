@@ -58,10 +58,10 @@ private:
   std::string response;
 
   // Disable copying.
-#ifdef CXX_03
+#ifndef CXX_11
   CurlPost (const CurlPost& o);
   CurlPost& operator= (const CurlPost& o);
-#endif /* CXX_03?  */
+#endif /* !CXX_11  */
 
   /**
    * Write function for cURL.
