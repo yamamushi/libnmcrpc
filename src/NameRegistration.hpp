@@ -97,6 +97,11 @@ private:
    */
   static const unsigned FIRSTUPDATE_DELAY;
 
+  // Disable default constructor.
+#ifndef CXX_11
+  NameRegistration ();
+#endif /* !CXX_11  */
+
 public:
 
   /**
@@ -111,9 +116,11 @@ public:
   }
 
   // No default constructor, copying is ok.
+#ifdef CXX_11
   NameRegistration () = delete;
   NameRegistration (const NameRegistration&) = default;
   NameRegistration& operator= (const NameRegistration&) = default;
+#endif /* CXX_11?  */
 
   /**
    * Start registration of a name with issuing the corresponding name_new
@@ -241,6 +248,13 @@ private:
   /** Store the name registration processes.  */
   nameListT names;
 
+  // Disable copying and default constructor.
+#ifndef CXX_11
+  RegistrationManager ();
+  RegistrationManager (const RegistrationManager&);
+  RegistrationManager& operator= (const RegistrationManager&);
+#endif /* !CXX_11  */
+
   /**
    * Clear all elements, freeing the memory properly.
    */
@@ -278,9 +292,11 @@ private:
   public:
 
     // Copying and default constructor.
+#ifdef CXX_11
     Iterator () = default;
     Iterator (const selfT&) = default;
     selfT& operator= (const selfT&) = default;
+#endif /* CXX_11?  */
 
     /* Compare for equality and inequality.  */
 
@@ -345,9 +361,11 @@ public:
   }
 
   // No copying.
+#ifdef CXX_11
   RegistrationManager () = delete;
   RegistrationManager (const RegistrationManager&) = delete;
   RegistrationManager& operator= (const RegistrationManager&) = delete;
+#endif /* CXX_11?  */
 
   /**
    * Destroy it safely.
@@ -445,6 +463,13 @@ private:
   /** The value to set.  */
   std::string value;
 
+  // Disable default constructor and copying.
+#ifndef CXX_11
+  NameUpdate ();
+  NameUpdate (const NameUpdate&);
+  NameUpdate& operator= (const NameUpdate&);
+#endif /* !CXX_11  */
+
   /**
    * Utility routine to perform the update in both cases with and without
    * manual address.  This handles the exception catching and things like that.
@@ -469,9 +494,11 @@ public:
               const NamecoinInterface::Name& nm);
 
   /* No copying or default constructor.  */
+#ifdef CXX_11
   NameUpdate () = delete;
   NameUpdate (const NameUpdate&) = delete;
   NameUpdate& operator= (const NameUpdate&) = delete;
+#endif /* CXX_11  */
 
   /**
    * Set the value to a manually determined one.
@@ -526,6 +553,11 @@ private:
   /** The name that is already reserved.  */
   std::string name;
 
+  // Disable default constructor.
+#ifndef CXX_11
+  NameAlreadyReserved ();
+#endif /* !CXX_11  */
+
 public:
 
   /**
@@ -539,9 +571,17 @@ public:
   }
 
   /* No default constructor, but copying ok.  */
+#ifdef CXX_11
   NameAlreadyReserved () = delete;
   NameAlreadyReserved (const NameAlreadyReserved&) = default;
   NameAlreadyReserved& operator= (const NameAlreadyReserved&) = default;
+#endif /* CXX_11  */
+
+  /* Explicitly specify throw().  */
+#ifndef CXX_11
+  inline ~NameAlreadyReserved () throw ()
+  {}
+#endif /* !CXX_11  */
 
   /**
    * Get the name of this error.
