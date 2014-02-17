@@ -1,5 +1,5 @@
 /*  Namecoin RPC library.
- *  Copyright (C) 2013  Daniel Kraft <d@domob.eu>
+ *  Copyright (C) 2013-2014  Daniel Kraft <d@domob.eu>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Affero General Public License as published by
@@ -308,7 +308,7 @@ bool
 NamecoinInterface::Name::split (const std::string& name,
                                 std::string& ns, std::string& trimmed)
 {
-  const auto pos = name.find ('/');
+  const std::string::size_type pos = name.find ('/');
   if (pos == std::string::npos)
     return false;
 
