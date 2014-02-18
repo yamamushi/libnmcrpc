@@ -64,8 +64,17 @@ static void
 doInfo (const RegistrationManager& reg)
 {
   std::cout << "Names in registration:" << std::endl << std::endl;
+#ifdef CXX_11
   for (const auto& nm : reg)
+#else /* CXX_11  */
+  for (RegistrationManager::const_iterator i = reg.begin ();
+       i != reg.end (); ++i)
+#endif /* CXX_11  */
     {
+#ifndef CXX_11
+      const NameRegistration& nm = *i;
+#endif /* !CXX_11  */
+
       std::cout << nm.getName () << ": ";
       switch (nm.getState ())
         {
@@ -125,7 +134,7 @@ doRegister (RegistrationManager& reg, NamecoinInterface& nc,
 static void
 doCheck (NamecoinInterface& nc, const std::string& file)
 {
-  std::ifstream listIn(file);
+  std::ifstream listIn (file.c_str ());
   if (!listIn)
     throw std::runtime_error ("Could not read list of names.");
 
@@ -210,7 +219,7 @@ main (int argc, char** argv)
 
       RegistrationManager reg(rpc, nc);
 
-      std::ifstream fileIn(stateFile);
+      std::ifstream fileIn (stateFile.c_str ());
       if (fileIn)
         {
           std::cout << "Reading old state." << std::endl;
@@ -263,7 +272,7 @@ main (int argc, char** argv)
               const std::string listFile = argv[3];
               const std::string val = argv[4];
 
-              std::ifstream listIn(listFile);
+              std::ifstream listIn (listFile.c_str ());
               if (!listIn)
                 throw std::runtime_error ("Could not read list of names.");
 
@@ -280,7 +289,7 @@ main (int argc, char** argv)
             throw std::runtime_error ("Unknown command '" + command + "'.");
         }
 
-      std::ofstream fileOut(stateFile);
+      std::ofstream fileOut (stateFile.c_str ());
       fileOut << reg;
       fileOut.close ();
       std::cout << "Wrote new state." << std::endl;

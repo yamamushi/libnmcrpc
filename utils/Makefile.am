@@ -1,4 +1,5 @@
-AM_CPPFLAGS = -I$(top_srcdir)/src -std=c++11 -pedantic -Wall -Wextra
+AM_CPPFLAGS = -I$(top_srcdir)/src -pedantic -Wall -Wextra
+AM_CPPFLAGS += -std=c++03 -Dnullptr=NULL
 LDADD = $(top_builddir)/src/libnmcrpc.la -lcurl -ljsoncpp
 
 AM_CPPFLAGS += $(LIBIDN_CFLAGS)
