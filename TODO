@@ -1,0 +1,3 @@
+* Make C++03 vs C++11 a configure flag.
+
+* Make libidn a configure flag and optional.
