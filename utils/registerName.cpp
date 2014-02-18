@@ -1,5 +1,5 @@
 /*  Namecoin RPC library.
- *  Copyright (C) 2013  Daniel Kraft <d@domob.eu>
+ *  Copyright (C) 2013-2014  Daniel Kraft <d@domob.eu>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Affero General Public License as published by
@@ -45,7 +45,7 @@ main (int argc, char** argv)
       NamecoinInterface nc(rpc);
       NameRegistration reg(rpc, nc);
 
-      std::ifstream fileIn(fileName);
+      std::ifstream fileIn (fileName.c_str ());
       if (fileIn)
         {
           std::cout << "Found state file, reading it and processing further."
@@ -76,7 +76,7 @@ main (int argc, char** argv)
           reg.setValue (value);
         }
 
-      std::ofstream fileOut(fileName);
+      std::ofstream fileOut (fileName.c_str ());
       fileOut << reg;
       fileOut.close ();
     }
