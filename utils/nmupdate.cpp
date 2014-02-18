@@ -1,5 +1,5 @@
 /*  Namecoin RPC library.
- *  Copyright (C) 2013  Daniel Kraft <d@domob.eu>
+ *  Copyright (C) 2013-2014  Daniel Kraft <d@domob.eu>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Affero General Public License as published by
@@ -66,7 +66,7 @@ displayHelp ()
 static void
 readNames (const std::string& fileName, std::vector<std::string>& names)
 {
-  std::ifstream in(fileName);
+  std::ifstream in (fileName.c_str ());
   if (!in)
     throw std::runtime_error ("Could not read list of names.");
 
@@ -96,8 +96,17 @@ performUpdate (JsonRpc& rpc, NamecoinInterface& nc,
                bool hasVal, const std::string& val,
                bool hasAddr, const std::string& addr)
 {
+#ifdef CXX_11
   for (const auto& nm : names)
+#else /* CXX_11  */
+  for (std::vector<std::string>::const_iterator i = names.begin ();
+       i != names.end (); ++i)
+#endif /* CXX_11  */
     {
+#ifndef CXX_11
+      const std::string& nm = *i;
+#endif /* !CXX_11  */
+
       std::cout << "Updating " << nm << ": ";
       NamecoinInterface::Name name = nc.queryName (nm);
 
@@ -114,6 +123,46 @@ performUpdate (JsonRpc& rpc, NamecoinInterface& nc,
       std::cout << txid << std::endl;
     }
 }
+
+/**
+ * Compare names for sorting by expiration date.
+ * @param a First name.
+ * @param b Second name.
+ * @return True iff a expires later than b.
+ */
+static bool
+compareNames (const NamecoinInterface::Name& a,
+              const NamecoinInterface::Name& b)
+{
+  int diff = a.getExpireCounter () - b.getExpireCounter ();
+  if (diff != 0)
+    return (diff > 0);
+  return a.getName () < b.getName ();
+}
+
+/* Functor instead of addName lambda if we don't have C++11.  */
+#ifndef CXX_11
+class addNameFunctor
+{
+private:
+
+  std::vector<NamecoinInterface::Name>& names;
+
+public:
+
+  explicit inline
+  addNameFunctor (std::vector<NamecoinInterface::Name>& n)
+    : names(n)
+  {}
+
+  inline void
+  operator() (const NamecoinInterface::Name& nm)
+  {
+    names.push_back (nm);
+  }
+
+};
+#endif /* !CXX_11  */
 
 /**
  * Main routine with the usual interface.
@@ -144,24 +193,31 @@ main (int argc, char** argv)
       if (command == "list")
         {
           std::vector<NamecoinInterface::Name> names;
+
+#ifdef CXX_11
           const auto addName = [&names] (const NamecoinInterface::Name& nm)
             {
               names.push_back (nm);
             };
+#else /* CXX_11  */
+          addNameFunctor addName(names);
+#endif /* CXX_11  */
+
           nc.forMyNames (addName);
 
-          const auto comp = [] (const NamecoinInterface::Name& a,
-                                const NamecoinInterface::Name& b) -> bool
-            {
-              int diff = a.getExpireCounter () - b.getExpireCounter ();
-              if (diff != 0)
-                return (diff > 0);
-              return a.getName () < b.getName ();
-            };
-          std::sort (names.begin (), names.end (), comp);
+          std::sort (names.begin (), names.end (), &compareNames);
 
+#ifdef CXX_11
           for (const auto& el : names)
+#else /* CXX_11  */
+          std::vector<NamecoinInterface::Name>::const_iterator i;
+          for (i = names.begin (); i != names.end (); ++i)
+#endif /* CXX_11  */
             {
+#ifndef CXX_11
+              const NamecoinInterface::Name& el = *i;
+#endif /* !CXX_11  */
+
               std::cout.width (30);
               std::cout << el.getName () << ": "
                         << el.getExpireCounter () << std::endl;
