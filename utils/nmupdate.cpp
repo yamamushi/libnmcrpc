@@ -219,8 +219,9 @@ main (int argc, char** argv)
 #endif /* !CXX_11  */
 
               std::cout.width (30);
-              std::cout << el.getName () << ": "
-                        << el.getExpireCounter () << std::endl;
+              if (!el.isExpired ())
+                std::cout << el.getName () << ": "
+                          << el.getExpireCounter () << std::endl;
             }
         }
       else
