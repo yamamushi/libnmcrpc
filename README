@@ -15,6 +15,9 @@ For building libnmcrpc, you need cURL [1] installed (for GNU/Linux systems
 you need the -dev package) as well as JsonCpp, which can be found at [2].
 For the IDN functionality, also libidn [3] is necessary.
 
+Note that the stable version 0.5 of JsonCpp did not work in my tests, it
+is suggested to use the latest source from their Subversion repository.
+
   [1] http://curl.haxx.se/
   [2] http://jsoncpp.sourceforge.net/
   [3] https://www.gnu.org/software/libidn/
