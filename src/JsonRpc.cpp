@@ -28,6 +28,8 @@
 #include <curl/curl.h>
 
 #include <cassert>
+#include <cstdlib>
+#include <fstream>
 #include <sstream>
 
 namespace nmcrpc
@@ -226,6 +228,9 @@ CurlPost::getResponseCode () const
 /* ************************************************************************** */
 /* The JsonRpc class itself.  */
 
+/** Environment variable name for controlling the call log file.  */
+const std::string JsonRpc::LOGFILE_VAR = "LIBNMCRPC_LOGFILE_RPCCALLS";
+
 /**
  * Perform a HTTP query with JSON data.  However, this routine does not
  * know/care about JSON, it just sends the raw string and returns the
@@ -251,6 +256,24 @@ JsonRpc::queryHttp (const std::string& query, unsigned& responseCode)
 
   responseCode = poster.getResponseCode ();
   return poster.getResponseBody ();
+}
+
+/**
+ * If logging of RPC calls is enabled (environment variable
+ * LIBNMCRPC_LOGFILE_RPCCALLS), write the given string to the
+ * log file.
+ * @param str String to log.
+ */
+void
+JsonRpc::logRpcCall (const std::string& str)
+{
+  const char* file = std::getenv (LOGFILE_VAR.c_str ());
+  if (!file)
+    return;
+
+  std::ofstream out(file, std::ios::app);
+  out << str;
+  out.close ();
 }
 
 /**
@@ -308,6 +331,9 @@ JsonRpc::encodeJson (const JsonData& data)
 JsonRpc::JsonData
 JsonRpc::executeRpcArray (const std::string& method, const JsonData& params)
 {
+  const bool logging = !dontLogNextCall;
+  dontLogNextCall = false;
+
   JsonData query(Json::objectValue);
   const int id = nextId++;
 
@@ -316,8 +342,26 @@ JsonRpc::executeRpcArray (const std::string& method, const JsonData& params)
   query["params"] = params;
   const std::string queryStr = encodeJson (query);
 
+  if (logging)
+    {
+      std::ostringstream msg;
+      msg << "namecoind " << method;
+      for (Json::Value::const_iterator i = params.begin ();
+           i != params.end (); ++i)
+        msg << " " << encodeJson (*i);
+      msg << std::endl;
+      logRpcCall (msg.str ());
+    }
+
   unsigned respCode;
   const std::string responseStr = queryHttp (queryStr, respCode);
+
+  if (logging)
+    {
+      std::ostringstream msg;
+      msg << "  -> " << responseStr << std::endl;
+      logRpcCall (msg.str ());
+    }
 
   switch (respCode)
     {
