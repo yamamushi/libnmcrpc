@@ -368,6 +368,7 @@ NamecoinInterface::WalletUnlocker::unlock (const std::string& passphrase)
 
       try
         {
+          rpc.disableLoggingOneShot ();
           rpc.executeRpc ("walletpassphrase", passphrase, UNLOCK_SECONDS);
           unlocked = true;
         }

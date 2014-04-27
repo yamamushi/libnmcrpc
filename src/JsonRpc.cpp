@@ -352,6 +352,8 @@ JsonRpc::executeRpcArray (const std::string& method, const JsonData& params)
       msg << std::endl;
       logRpcCall (msg.str ());
     }
+  else
+    logRpcCall ("<logging disabled for one RPC call>\n\n");
 
   unsigned respCode;
   const std::string responseStr = queryHttp (queryStr, respCode);
