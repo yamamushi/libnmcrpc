@@ -29,6 +29,11 @@
 namespace nmcrpc
 {
 
+/** Default port for main-test.  */
+const unsigned RpcSettings::DEFAULT_PORT_MAINNET = 8336;
+/** Default port for test-net.  */
+const unsigned RpcSettings::DEFAULT_PORT_TESTNET = 18336;
+
 /**
  * Try to read the given input file and update settings when corresponding
  * ones are found there.
@@ -42,6 +47,7 @@ RpcSettings::readConfig (const std::string& filename)
   /* We're going to ignore all errors, since this is just a "best try"
      approach to configuration guessing anyway.  */
 
+  unsigned newPort = 0;
   while (in)
     {
       std::string line;
@@ -56,14 +62,26 @@ RpcSettings::readConfig (const std::string& filename)
           if (before == "rpcport")
             {
               std::istringstream numIn(after);
-              numIn >> port;
+              numIn >> newPort;
             }
           else if (before == "rpcuser")
             username = after;
           else if (before == "rpcpassword")
             password = after;
+          else if (before == "testnet" && newPort == 0)
+            {
+              const bool haveTestNet = (after != "0");
+              if (haveTestNet)
+                newPort = DEFAULT_PORT_TESTNET;
+              else
+                newPort = DEFAULT_PORT_MAINNET;
+            }
         }
     }
+
+  /* Update port.  */
+  if (newPort != 0)
+    port = newPort;
 }
 
 /**

@@ -46,6 +46,11 @@ private:
   /** Password for authentication.  */
   std::string password;
 
+  /** Default port for main-test.  */
+  static const unsigned DEFAULT_PORT_MAINNET;
+  /** Default port for test-net.  */
+  static const unsigned DEFAULT_PORT_TESTNET;
+
 public:
 
   /**
@@ -53,7 +58,7 @@ public:
    * and leaves the authentication data blank.
    */
   inline RpcSettings ()
-    : host("localhost"), port(8336), username(""), password("")
+    : host("localhost"), port(DEFAULT_PORT_MAINNET), username(""), password("")
   {
     // Nothing else to do.
   }
