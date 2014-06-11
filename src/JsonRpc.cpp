@@ -28,6 +28,7 @@
 #include <curl/curl.h>
 
 #include <cassert>
+#include <clocale>
 #include <cstdlib>
 #include <fstream>
 #include <sstream>
@@ -316,8 +317,22 @@ JsonRpc::readJson (std::istream& in)
 std::string
 JsonRpc::encodeJson (const JsonData& data)
 {
+  /* Work around a locale problem with outputting decimal numbers.
+     We always want '.' to be the decimal separator.
+     See http://sourceforge.net/p/jsoncpp/bugs/43/.  */
+#ifndef WIN32
+  const char* oldLocale = std::setlocale (LC_NUMERIC, nullptr);
+  std::setlocale (LC_NUMERIC, "C");
+#endif /* !WIN32  */
+
   Json::FastWriter writer;
-  return writer.write (data);
+  const std::string res = writer.write (data);
+
+#ifndef WIN32
+  std::setlocale (LC_NUMERIC, oldLocale);
+#endif /* !WIN32  */
+
+  return res;
 }
 
 /**
