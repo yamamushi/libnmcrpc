@@ -23,6 +23,7 @@
 #include "CoinInterface.hpp"
 
 #include <ctime>
+#include <iomanip>
 #include <sstream>
 
 namespace nmcrpc
@@ -115,6 +116,17 @@ CoinInterface::getNumberOfConfirmations (const std::string& txid)
   assert (res.isObject ());
 
   return res["confirmations"].asInt ();
+}
+
+/**
+ * Get the current wallet balance.
+ * @return Current wallet balance.
+ */
+CoinInterface::Balance
+CoinInterface::getBalance ()
+{
+  const JsonRpc::JsonData res = rpc.executeRpc ("getbalance");
+  return Balance(res);
 }
 
 /**
@@ -222,6 +234,45 @@ CoinInterface::Address::signMessage (const std::string& msg) const
           throw exc;
         }
     }
+}
+
+/* ************************************************************************** */
+/* Balance object.  */
+
+/** Number of Satoshis in a full coin.  */
+const CoinInterface::Balance::IntType CoinInterface::Balance::COIN = 100000000;
+
+/**
+ * Convert the balance to a formatted string.
+ * @return Value as string.
+ */
+std::string
+CoinInterface::Balance::toString () const
+{
+  IntType abs;
+  bool negative;
+  if (value < 0)
+    {
+      negative = true;
+      abs = -value;
+    }
+  else
+    {
+      negative = false;
+      abs = value;
+    }
+  assert (abs >= 0);
+
+  const IntType full = abs / COIN;
+  const IntType frac = abs % COIN;
+  assert (abs == full * COIN + frac && frac >= 0 && frac < COIN);
+
+  std::ostringstream res;
+  if (negative)
+    res << "-";
+  res << full << "." << std::setw(8) << std::setfill('0') << frac;
+
+  return res.str ();
 }
 
 /* ************************************************************************** */

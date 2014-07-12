@@ -58,6 +58,20 @@ main ()
     std::cout << "not mine";
   std::cout << std::endl;
 
+  CoinInterface::Balance bal;
+  bal = nc.getBalance ();
+  std::cout << "Balance: " << bal.toString () << std::endl;
+  bal = 12.034;
+  assert (bal.toString () == "12.03400000");
+  bal = static_cast<CoinInterface::Balance::IntType> (100);
+  assert (bal.toString () == "0.00000100" && bal.getIntValue () == 100);
+  bal = -1.00000001;
+  assert (bal.toString () == "-1.00000001");
+
+  /* Check that maximum precision is accurately represented.  */
+  bal = 21e6 - 0.00000001;
+  assert (bal.toString () == "20999999.99999999");
+
   NameInterface::Name name;
   name = nc.queryName ("id/domob");
   assert (name.exists () && !name.isExpired ());

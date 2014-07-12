@@ -24,6 +24,8 @@
 #include "JsonRpc.hpp"
 
 #include <cassert>
+#include <cmath>
+#include <stdint.h>
 #include <stdexcept>
 #include <string>
 
@@ -50,6 +52,7 @@ public:
 
   /* Other child classes.  */
   class Address;
+  class Balance;
   class WalletUnlocker;
 
 protected:
@@ -133,6 +136,12 @@ public:
    * @throws JsonRpc::RpcError if the tx is not found.
    */
   unsigned getNumberOfConfirmations (const std::string& txid);
+
+  /**
+   * Get the current wallet balance.
+   * @return Current wallet balance.
+   */
+  Balance getBalance ();
 
   /**
    * Check whether the wallet needs to be unlocked or not.  This routine is
@@ -244,6 +253,150 @@ public:
    * @throws std::runtime_error if the address is invalid or the wallet locked.
    */
   std::string signMessage (const std::string& msg) const;
+
+};
+
+/* ************************************************************************** */
+/* Balance object.  */
+
+/**
+ * Hold a currency balance / amount.  This is stored internally
+ * (like Bitcoin Core does) as a fixed-point decimal, as multiples
+ * of Satoshis.  This number can be converted to/from JSON and
+ * to/from floating-point numbers for ease-of-use.
+ */
+class CoinInterface::Balance
+{
+
+public:
+
+  /** Type used for the internal Satoshi numbers.  */
+  typedef int64_t IntType;
+  /** Type used to approximate balances with real numbers.  */
+  typedef double RealType;
+
+  /** Number of Satoshis in a full coin.  */
+  static const IntType COIN;
+
+private:
+
+  /** Store value internally.  */
+  IntType value;
+
+public:
+
+  /**
+   * Default constructor.  Sets value to zero.
+   */
+  inline Balance ()
+    : value(0)
+  {}
+
+  /**
+   * Construct from integer value of Satoshis.
+   * @param v Value in Satoshis.
+   */
+  inline Balance (IntType v)
+    : value(v)
+  {}
+
+  /**
+   * Construct from double value.
+   * @param v Value in NMC as double.
+   */
+  inline Balance (RealType v)
+  {
+    operator= (v);
+  }
+
+  /**
+   * Construct from JSON value.
+   * @param v Value as JSON object.
+   */
+  inline Balance (const JsonRpc::JsonData& v)
+  {
+    operator= (v);
+  }
+
+  // Copying is ok.
+#ifdef CXX_11
+  Balance (const Balance&) = default;
+  Balance& operator= (const Balance&) = default;
+#endif /* CXX_11?  */
+
+  /**
+   * Set to given number of Satoshis.
+   * @param v Value in Satoshis.
+   * @return Reference to "this".
+   */
+  inline Balance&
+  operator= (IntType v)
+  {
+    value = v;
+    return *this;
+  }
+
+  /**
+   * Set from a double value.
+   * @param v Value in NMC as floating-point.
+   * @return Reference to "this".
+   */
+  inline Balance&
+  operator= (RealType v)
+  {
+    return operator= (static_cast<IntType> (round (v * COIN)));
+  }
+
+  /**
+   * Set from a JSON value.  This is internally handled like the
+   * "set to double" variant.  It may be changed in the future
+   * if JSON handles arbitrary precision floating-point literals.
+   * @param v JSON value from which to extract the value.
+   * @return Reference to "this".
+   */
+  inline Balance&
+  operator= (const JsonRpc::JsonData& v)
+  {
+    return operator= (static_cast<RealType> (v.asDouble ()));
+  }
+
+  /**
+   * Get value in Satoshis.
+   * @return Value in Satoshis.
+   */
+  inline IntType
+  getIntValue () const
+  {
+    return value;
+  }
+
+  /**
+   * Get value as real number (floating point).
+   * @return Value in NMC as double.
+   */
+  inline RealType
+  getRealValue () const
+  {
+    return static_cast<RealType> (value) / COIN;
+  }
+
+  /**
+   * Get value as JSON data.
+   * @return Value as JSON object.
+   */
+  inline JsonRpc::JsonData
+  getJsonValue () const
+  {
+    return JsonRpc::JsonData(static_cast<double> (getRealValue ()));
+  }
+
+  /* TODO: Arithmetic operations (plus, minus, times scalar).  */
+
+  /**
+   * Convert the balance to a formatted string.
+   * @return Value as string.
+   */
+  std::string toString () const;
 
 };
 

@@ -22,7 +22,6 @@
 
 #include "NameInterface.hpp"
 
-#include <ctime>
 #include <sstream>
 
 namespace nmcrpc
