@@ -22,7 +22,7 @@
 
 #include "IdnTool.hpp"
 #include "JsonRpc.hpp"
-#include "NamecoinInterface.hpp"
+#include "NameInterface.hpp"
 #include "NameRegistration.hpp"
 
 #include <cassert>
@@ -111,13 +111,13 @@ doInfo (const RegistrationManager& reg)
  * @param val The value to set.
  */
 static void
-doRegister (RegistrationManager& reg, NamecoinInterface& nc,
+doRegister (RegistrationManager& reg, NameInterface& nc,
             const std::string& name, const std::string& val)
 {
   IdnTool idn(true);
   const std::string idnName = idn.encode (name);
 
-  const NamecoinInterface::Name nm = nc.queryName (idnName);
+  const NameInterface::Name nm = nc.queryName (idnName);
   NameRegistration& cur = reg.registerName (nm);
   cur.setValue (val);
 
@@ -132,7 +132,7 @@ doRegister (RegistrationManager& reg, NamecoinInterface& nc,
  * @param file File name to check.
  */
 static void
-doCheck (NamecoinInterface& nc, const std::string& file)
+doCheck (NameInterface& nc, const std::string& file)
 {
   std::ifstream listIn (file.c_str ());
   if (!listIn)
@@ -149,7 +149,7 @@ doCheck (NamecoinInterface& nc, const std::string& file)
       if (!line.empty ())
         {
           const std::string idnName = idn.encode (line);
-          const NamecoinInterface::Name nm = nc.queryName (idnName);
+          const NameInterface::Name nm = nc.queryName (idnName);
 
           std::cout.width (30);
           std::cout << nm.getName () << ": ";
@@ -202,7 +202,7 @@ main (int argc, char** argv)
       RpcSettings settings;
       settings.readDefaultConfig ();
       JsonRpc rpc(settings);
-      NamecoinInterface nc(rpc);
+      NameInterface nc(rpc);
 
       if (command == "check")
         {
@@ -244,7 +244,7 @@ main (int argc, char** argv)
               std::cout << "Enter wallet passphrase: ";
               std::getline (std::cin, passphrase);
             }
-          NamecoinInterface::WalletUnlocker unlock(nc);
+          CoinInterface::WalletUnlocker unlock(nc);
           unlock.unlock (passphrase);
 
           if (command == "update")

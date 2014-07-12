@@ -21,7 +21,7 @@
 /* Test program for name registration.  */
 
 #include "JsonRpc.hpp"
-#include "NamecoinInterface.hpp"
+#include "NameInterface.hpp"
 #include "NameRegistration.hpp"
 
 #include <cstdlib>
@@ -42,7 +42,7 @@ main (int argc, char** argv)
       RpcSettings settings;
       settings.readDefaultConfig ();
       JsonRpc rpc(settings);
-      NamecoinInterface nc(rpc);
+      NameInterface nc(rpc);
       NameRegistration reg(rpc, nc);
 
       std::ifstream fileIn (fileName.c_str ());

@@ -21,7 +21,7 @@
 /* Utility program to update names.  */
 
 #include "JsonRpc.hpp"
-#include "NamecoinInterface.hpp"
+#include "NameInterface.hpp"
 #include "NameRegistration.hpp"
 
 #include <algorithm>
@@ -91,7 +91,7 @@ readNames (const std::string& fileName, std::vector<std::string>& names)
  * @param addr Target address, ignored if !hasAddr.
  */
 static void
-performUpdate (JsonRpc& rpc, NamecoinInterface& nc,
+performUpdate (JsonRpc& rpc, NameInterface& nc,
                const std::vector<std::string>& names,
                bool hasVal, const std::string& val,
                bool hasAddr, const std::string& addr)
@@ -108,7 +108,7 @@ performUpdate (JsonRpc& rpc, NamecoinInterface& nc,
 #endif /* !CXX_11  */
 
       std::cout << "Updating " << nm << ": ";
-      NamecoinInterface::Name name = nc.queryName (nm);
+      NameInterface::Name name = nc.queryName (nm);
 
       NameUpdate updater (rpc, nc, name);
       if (hasVal)
@@ -131,8 +131,8 @@ performUpdate (JsonRpc& rpc, NamecoinInterface& nc,
  * @return True iff a expires later than b.
  */
 static bool
-compareNames (const NamecoinInterface::Name& a,
-              const NamecoinInterface::Name& b)
+compareNames (const NameInterface::Name& a,
+              const NameInterface::Name& b)
 {
   int diff = a.getExpireCounter () - b.getExpireCounter ();
   if (diff != 0)
@@ -146,17 +146,17 @@ class addNameFunctor
 {
 private:
 
-  std::vector<NamecoinInterface::Name>& names;
+  std::vector<NameInterface::Name>& names;
 
 public:
 
   explicit inline
-  addNameFunctor (std::vector<NamecoinInterface::Name>& n)
+  addNameFunctor (std::vector<NameInterface::Name>& n)
     : names(n)
   {}
 
   inline void
-  operator() (const NamecoinInterface::Name& nm)
+  operator() (const NameInterface::Name& nm)
   {
     names.push_back (nm);
   }
@@ -188,14 +188,14 @@ main (int argc, char** argv)
       RpcSettings settings;
       settings.readDefaultConfig ();
       JsonRpc rpc(settings);
-      NamecoinInterface nc(rpc);
+      NameInterface nc(rpc);
 
       if (command == "list")
         {
-          std::vector<NamecoinInterface::Name> names;
+          std::vector<NameInterface::Name> names;
 
 #ifdef CXX_11
-          const auto addName = [&names] (const NamecoinInterface::Name& nm)
+          const auto addName = [&names] (const NameInterface::Name& nm)
             {
               names.push_back (nm);
             };
@@ -210,12 +210,12 @@ main (int argc, char** argv)
 #ifdef CXX_11
           for (const auto& el : names)
 #else /* CXX_11  */
-          std::vector<NamecoinInterface::Name>::const_iterator i;
+          std::vector<NameInterface::Name>::const_iterator i;
           for (i = names.begin (); i != names.end (); ++i)
 #endif /* CXX_11  */
             {
 #ifndef CXX_11
-              const NamecoinInterface::Name& el = *i;
+              const NameInterface::Name& el = *i;
 #endif /* !CXX_11  */
 
               std::cout.width (30);
@@ -232,7 +232,7 @@ main (int argc, char** argv)
               std::cout << "Enter wallet passphrase: ";
               std::getline (std::cin, passphrase);
             }
-          NamecoinInterface::WalletUnlocker unlock(nc);
+          CoinInterface::WalletUnlocker unlock(nc);
           unlock.unlock (passphrase);
 
           std::vector<std::string> names;
