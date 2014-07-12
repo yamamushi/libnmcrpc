@@ -22,7 +22,7 @@
 #define NMCRPC_NAMEREGISTRATION_HPP
 
 #include "JsonRpc.hpp"
-#include "NamecoinInterface.hpp"
+#include "NameInterface.hpp"
 
 #include <iostream>
 #include <list>
@@ -73,7 +73,7 @@ private:
   /** Underlying RPC connection.  */
   JsonRpc& rpc;
   /** High-level Namecoin interface.  */
-  NamecoinInterface& nc;
+  NameInterface& nc;
 
   /** Current state.  */
   State state;
@@ -109,7 +109,7 @@ public:
    * @param r The RPC connection.
    * @param n The high-level Namecoin interface.
    */
-  explicit inline NameRegistration (JsonRpc& r, NamecoinInterface& n)
+  explicit inline NameRegistration (JsonRpc& r, NameInterface& n)
     : rpc(r), nc(n), state(NOT_STARTED)
   {
     // Nothing more to be done.
@@ -129,7 +129,7 @@ public:
    * @throws std::runtime_error if we're not in NOT_STARTED state.
    * @throws NameAlreadyReserved if the name already exists.
    */
-  void registerName (const NamecoinInterface::Name& nm);
+  void registerName (const NameInterface::Name& nm);
 
   /**
    * Set the value to use with firstupdate as string.
@@ -240,7 +240,7 @@ private:
   /** The RPC connection to use.  */
   JsonRpc& rpc;
   /** The high-level Namecoin interface.  */
-  NamecoinInterface& nc;
+  NameInterface& nc;
 
   /** Type used internally to keep the list of names.  */
   typedef std::list<NameRegistration*> nameListT;
@@ -354,7 +354,7 @@ public:
    * @param r The RPC interface to use.
    * @param n The high-level interface.
    */
-  inline RegistrationManager (JsonRpc& r, NamecoinInterface& n)
+  inline RegistrationManager (JsonRpc& r, NameInterface& n)
     : rpc(r), nc(n), names()
   {
     // Nothing more to do.
@@ -379,7 +379,7 @@ public:
    * @return The NameRegistration object created and inserted.
    * @throws NameAlreadyReserved if the name already exists.
    */
-  NameRegistration& registerName (const NamecoinInterface::Name& nm);
+  NameRegistration& registerName (const NameInterface::Name& nm);
 
   /**
    * Try to update all processes, which activates names where it is possible.
@@ -455,10 +455,10 @@ private:
   /** JSON RPC connection used.  */
   JsonRpc& rpc;
   /** Namecoin high-level interface.  */
-  NamecoinInterface& nc;
+  NameInterface& nc;
 
   /** The name that is being updated.  */
-  NamecoinInterface::Name name;
+  NameInterface::Name name;
   
   /** The value to set.  */
   std::string value;
@@ -478,7 +478,7 @@ private:
    * @throws NoPrivateKey if the name is not owned by the user.
    * @throws std::runtime_error if the wallet is locked.
    */
-  std::string internalExecute (const NamecoinInterface::Address* addr);
+  std::string internalExecute (const NameInterface::Address* addr);
 
 public:
 
@@ -490,8 +490,8 @@ public:
    * @param nm The name to update.
    * @throws NameNotFound if the name doesn't yet exist.
    */
-  NameUpdate (JsonRpc& r, NamecoinInterface& n,
-              const NamecoinInterface::Name& nm);
+  NameUpdate (JsonRpc& r, NameInterface& n,
+              const NameInterface::Name& nm);
 
   /* No copying or default constructor.  */
 #ifdef CXX_11
@@ -532,7 +532,7 @@ public:
    * @throws std::runtime_error if the wallet is locked.
    */
   inline std::string
-  execute (const NamecoinInterface::Address& addr)
+  execute (const NameInterface::Address& addr)
   {
     return internalExecute (&addr);
   }

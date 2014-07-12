@@ -8,7 +8,7 @@ libnmcrpc_la_SOURCES = \
   CoinInterface.cpp \
   JsonRpc.cpp \
   IdnTool.cpp \
-  NamecoinInterface.cpp \
+  NameInterface.cpp \
   NameRegistration.cpp \
   RpcSettings.cpp
 
@@ -17,6 +17,6 @@ pkginclude_HEADERS = \
   CoinInterface.hpp \
   JsonRpc.hpp JsonRpc.tpp \
   IdnTool.hpp \
-  NamecoinInterface.hpp NamecoinInterface.tpp \
+  NameInterface.hpp NameInterface.tpp \
   NameRegistration.hpp \
   RpcSettings.hpp

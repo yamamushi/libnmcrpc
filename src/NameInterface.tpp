@@ -18,7 +18,7 @@
  *  to those of the GNU Affero General Public License.
  */
 
-/* Template implementation for NamecoinInterface.hpp.  */
+/* Template implementation for NameInterface.hpp.  */
 
 /* ************************************************************************** */
 /* High-level interface to Namecoin.  */
@@ -31,7 +31,7 @@
  */
 template<typename T>
   void
-  NamecoinInterface::forMyNames (T cb)
+  NameInterface::forMyNames (T cb)
 {
   const JsonRpc::JsonData res = rpc.executeRpc ("name_list");
   assert (res.isArray ());
@@ -44,7 +44,7 @@ template<typename T>
 #ifndef CXX_11
       const JsonRpc::JsonData& val = *i;
 #endif /* !CXX_11?  */
-      NamecoinInterface::Name nm = queryName (val["name"].asString ());
+      NameInterface::Name nm = queryName (val["name"].asString ());
       if (nm.getAddress ().isMine ())
         cb (nm);
     }
@@ -57,7 +57,7 @@ template<typename T>
  */
 template<typename T>
   void
-  NamecoinInterface::forAllNames (T cb)
+  NameInterface::forAllNames (T cb)
 {
   static const unsigned CNT = 5000;
 

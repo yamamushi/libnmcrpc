@@ -44,7 +44,7 @@ const unsigned NameRegistration::FIRSTUPDATE_DELAY = 12;
  * @throws NameAlreadyReserved if the name already exists.
  */
 void
-NameRegistration::registerName (const NamecoinInterface::Name& nm)
+NameRegistration::registerName (const NameInterface::Name& nm)
 {
   if (state != NOT_STARTED)
     throw std::runtime_error ("Can registerName() only in NOT_STARTED state.");
@@ -244,7 +244,7 @@ RegistrationManager::clear ()
  * @throws NameAlreadyReserved if the name already exists.
  */
 NameRegistration&
-RegistrationManager::registerName (const NamecoinInterface::Name& nm)
+RegistrationManager::registerName (const NameInterface::Name& nm)
 {
 #ifdef CXX_11
   std::unique_ptr<NameRegistration> ptr;
@@ -397,8 +397,8 @@ operator>> (std::istream& in, RegistrationManager& obj)
  * @param nm The name to update.
  * @throws NameNotFound if the name doesn't yet exist.
  */
-NameUpdate::NameUpdate (JsonRpc& r, NamecoinInterface& n,
-                        const NamecoinInterface::Name& nm)
+NameUpdate::NameUpdate (JsonRpc& r, NameInterface& n,
+                        const NameInterface::Name& nm)
   : rpc(r), nc(n), name(nm)
 {
   value = name.getStringValue ();
@@ -413,7 +413,7 @@ NameUpdate::NameUpdate (JsonRpc& r, NamecoinInterface& n,
  * @throws std::runtime_error if the wallet is locked.
  */
 std::string
-NameUpdate::internalExecute (const NamecoinInterface::Address* addr)
+NameUpdate::internalExecute (const NameInterface::Address* addr)
 {
   try
     {
@@ -442,7 +442,7 @@ NameUpdate::internalExecute (const NamecoinInterface::Address* addr)
             std::ostringstream msg;
             msg << "You don't have the private key for the name "
                 << name.getName () << " and can't update this name.";
-            throw NamecoinInterface::NoPrivateKey (msg.str ());
+            throw NameInterface::NoPrivateKey (msg.str ());
           }
 
         default:

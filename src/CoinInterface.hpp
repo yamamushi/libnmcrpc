@@ -52,10 +52,12 @@ public:
   class Address;
   class WalletUnlocker;
 
-private:
+protected:
 
   /** Underlying RPC connection.  */
   JsonRpc& rpc;
+
+private:
 
   /**
    * The number of seconds we want to temporarily unlock the wallet in case

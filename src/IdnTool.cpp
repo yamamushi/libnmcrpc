@@ -22,7 +22,7 @@
 
 #include "IdnTool.hpp"
 
-#include "NamecoinInterface.hpp"
+#include "NameInterface.hpp"
 
 #include <idna.h>
 #include <stringprep.h>
@@ -123,7 +123,7 @@ IdnTool::decode (const std::string& in) const
     return decodeFull (in);
 
   std::string ns, trimmed;
-  const bool hasNS = NamecoinInterface::Name::split (in, ns, trimmed);
+  const bool hasNS = NameInterface::Name::split (in, ns, trimmed);
   if (!hasNS)
     return decodeFull (in);
 
@@ -147,7 +147,7 @@ IdnTool::encode (const std::string& in) const
     return encodeFull (in);
 
   std::string ns, trimmed;
-  const bool hasNS = NamecoinInterface::Name::split (in, ns, trimmed);
+  const bool hasNS = NameInterface::Name::split (in, ns, trimmed);
   if (!hasNS)
     return encodeFull (in);
 
