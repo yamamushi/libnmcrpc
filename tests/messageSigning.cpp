@@ -1,5 +1,5 @@
 /*  Namecoin RPC library.
- *  Copyright (C) 2013  Daniel Kraft <d@domob.eu>
+ *  Copyright (C) 2013-2014  Daniel Kraft <d@domob.eu>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,7 @@
 /* Test program for message signing and verification.  */
 
 #include "JsonRpc.hpp"
-#include "NamecoinInterface.hpp"
+#include "CoinInterface.hpp"
 
 #include <cassert>
 #include <cstdlib>
@@ -35,14 +35,14 @@ main ()
   RpcSettings settings;
   settings.readDefaultConfig ();
   JsonRpc rpc(settings);
-  NamecoinInterface nc(rpc);
+  CoinInterface nc(rpc);
 
   const std::string testAddr = "NFppu8bRjGVYTjyVrFZE9cGmjvzD6VUo5m";
   const std::string testMsg = "This is a test message.";
   const std::string testSig = "HH7ssAn7gH5579y5wcaLZTVtzxOk+R9lOwgn/V/Oh7S1LF"
                               "XZOxq2a1DWpPRTauGMDrz+KPCxhBFUVGP228Kt69s=";
 
-  NamecoinInterface::Address addr;
+  CoinInterface::Address addr;
   addr = nc.queryAddress (testAddr);
   assert (addr.verifySignature (testMsg, testSig));
   assert (!addr.verifySignature ("Wrong message.", testSig));
@@ -65,7 +65,7 @@ main ()
 
   try
     {
-      NamecoinInterface::WalletUnlocker unlock(nc);
+      CoinInterface::WalletUnlocker unlock(nc);
       unlock.unlock (passphrase);
 
       addr = nc.queryAddress ("NELdJ5BTQuV6gUrxuA9L7My2Q6CyXeR3Ud");
@@ -75,7 +75,7 @@ main ()
           // This should have thrown.
           assert (false);
         }
-      catch (const NamecoinInterface::NoPrivateKey& exc)
+      catch (const CoinInterface::NoPrivateKey& exc)
         {
           // This is expected.
         }
@@ -98,7 +98,7 @@ main ()
         std::cout << "Signing address is invalid, ignoring this test."
                   << std::endl;
     }
-  catch (const NamecoinInterface::UnlockFailure& exc)
+  catch (const CoinInterface::UnlockFailure& exc)
     {
       std::cout << "Unlock failed, ignoring those tests." << std::endl;
     }

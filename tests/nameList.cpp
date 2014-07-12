@@ -21,7 +21,7 @@
 /* Test program for listing of (all) names.  */
 
 #include "JsonRpc.hpp"
-#include "NamecoinInterface.hpp"
+#include "NameInterface.hpp"
 
 #include <cassert>
 #include <cstdlib>
@@ -35,7 +35,7 @@ main ()
   RpcSettings settings;
   settings.readDefaultConfig ();
   JsonRpc rpc(settings);
-  NamecoinInterface nc(rpc);
+  NameInterface nc(rpc);
 
   unsigned cnt = 0;
   const auto cb = [&cnt] (const std::string& str)

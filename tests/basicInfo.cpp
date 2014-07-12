@@ -1,5 +1,5 @@
 /*  Namecoin RPC library.
- *  Copyright (C) 2013  Daniel Kraft <d@domob.eu>
+ *  Copyright (C) 2013-2014  Daniel Kraft <d@domob.eu>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,7 @@
 /* Test program for high-level query of basic infos.  */
 
 #include "JsonRpc.hpp"
-#include "NamecoinInterface.hpp"
+#include "NameInterface.hpp"
 
 #include <cassert>
 #include <cstdlib>
@@ -35,7 +35,7 @@ main ()
   RpcSettings settings;
   settings.readDefaultConfig ();
   JsonRpc rpc(settings);
-  NamecoinInterface nc(rpc);
+  NameInterface nc(rpc);
 
   std::string testMsg;
   bool ok = nc.testConnection (testMsg);
@@ -44,7 +44,7 @@ main ()
   ok = nc.testConnection ();
   assert (ok);
 
-  NamecoinInterface::Address addr;
+  CoinInterface::Address addr;
   addr = nc.queryAddress ("foobar-invalid-address");
   assert (!addr.isValid () && !addr.isMine ());
   addr = nc.queryAddress ("NFUJUGVzjTuef8bX7dd3BfXekfu8cdzkuH");
@@ -58,14 +58,12 @@ main ()
     std::cout << "not mine";
   std::cout << std::endl;
 
-  NamecoinInterface::Name name;
+  NameInterface::Name name;
   name = nc.queryName ("id/domob");
   assert (name.exists () && !name.isExpired ());
   assert (!name.isExpired ());
   std::cout << name.getName () << ": " << name.getAddress ().getAddress ()
             << ", expires in " << name.getExpireCounter () << std::endl;
-  name = nc.queryName ("id", "dani");
-  assert (name.exists () && !name.isExpired ());
   assert (name.getJsonValue ()["email"].asString () == "d@domob.eu");
   try
     {
@@ -75,7 +73,7 @@ main ()
       // Here the exception should be thrown.
       assert (false);
     }
-  catch (const NamecoinInterface::NameNotFound& exc)
+  catch (const NameInterface::NameNotFound& exc)
     {
       // This is expected.
     }
