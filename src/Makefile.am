@@ -5,6 +5,7 @@ libnmcrpc_la_CXXFLAGS += -std=c++03 -Dnullptr=NULL
 libnmcrpc_la_CXXFLAGS += $(LIBIDN_CFLAGS)
 libnmcrpc_la_LIBADD = $(LIBIDN_LIBS)
 libnmcrpc_la_SOURCES = \
+  CoinInterface.cpp \
   JsonRpc.cpp \
   IdnTool.cpp \
   NamecoinInterface.cpp \
@@ -13,6 +14,7 @@ libnmcrpc_la_SOURCES = \
 
 pkgincludedir = $(includedir)/nmcrpc
 pkginclude_HEADERS = \
+  CoinInterface.hpp \
   JsonRpc.hpp JsonRpc.tpp \
   IdnTool.hpp \
   NamecoinInterface.hpp NamecoinInterface.tpp \
