@@ -29,6 +29,9 @@
 namespace nmcrpc
 {
 
+/** Environment variable name for controlling the config file.  */
+const std::string RpcSettings::CONFIGFILE_VAR = "LIBNMCRPC_DEFAULT_CONFIGFILE";
+
 /** Default port for main-test.  */
 const unsigned RpcSettings::DEFAULT_PORT_MAINNET = 8336;
 /** Default port for test-net.  */
@@ -92,7 +95,14 @@ RpcSettings::readDefaultConfig ()
 {
   /* FIXME: Make work also for OSX and Windows!  */
 
-  const char* home = getenv ("HOME");
+  const char* override = std::getenv (CONFIGFILE_VAR.c_str ());
+  if (override)
+    {
+      readConfig (override);
+      return;
+    }
+
+  const char* home = std::getenv ("HOME");
   if (!home)
     return;
 

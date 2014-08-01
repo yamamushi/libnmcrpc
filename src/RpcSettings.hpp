@@ -36,6 +36,14 @@ class RpcSettings
 
 private:
 
+  /** Environment variable name for controlling the config file.  */
+  static const std::string CONFIGFILE_VAR;
+
+  /** Default port for main-test.  */
+  static const unsigned DEFAULT_PORT_MAINNET;
+  /** Default port for test-net.  */
+  static const unsigned DEFAULT_PORT_TESTNET;
+
   /** Host name.  */
   std::string host;
   /** Port to connect to.  */
@@ -45,11 +53,6 @@ private:
   std::string username;
   /** Password for authentication.  */
   std::string password;
-
-  /** Default port for main-test.  */
-  static const unsigned DEFAULT_PORT_MAINNET;
-  /** Default port for test-net.  */
-  static const unsigned DEFAULT_PORT_TESTNET;
 
 public:
 
