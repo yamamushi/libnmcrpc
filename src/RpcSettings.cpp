@@ -71,6 +71,8 @@ RpcSettings::readConfig (const std::string& filename)
             username = after;
           else if (before == "rpcpassword")
             password = after;
+          else if (before == "rpcconnect")
+            host = after;
           else if (before == "testnet" && newPort == 0)
             {
               const bool haveTestNet = (after != "0");
