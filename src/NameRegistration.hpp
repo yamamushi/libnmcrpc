@@ -70,10 +70,20 @@ public:
 
 private:
 
+  /** Name of the envvar to configure firstupdateDelay.  */
+  static const std::string FIRSTUPDATEDELAY_VAR;
+
   /** Underlying RPC connection.  */
   JsonRpc& rpc;
   /** High-level Namecoin interface.  */
   NameInterface& nc;
+
+  /**
+   * Number of confirmations we want on the name_new transaction before
+   * performing name_firstupdate.  This is usually 12, but it may be
+   * changed to allow "immature" name_firstupdate's using an envvar.
+   */
+  unsigned firstupdateDelay;
 
   /** Current state.  */
   State state;
@@ -91,12 +101,6 @@ private:
   /** Txid of name_firstupdate.  */
   std::string txActivation;
 
-  /**
-   * Number of confirmations we want on the name_new transaction before
-   * performing name_firstupdate.
-   */
-  static const unsigned FIRSTUPDATE_DELAY;
-
   // Disable default constructor.
 #ifndef CXX_11
   NameRegistration ();
@@ -109,11 +113,7 @@ public:
    * @param r The RPC connection.
    * @param n The high-level Namecoin interface.
    */
-  explicit inline NameRegistration (JsonRpc& r, NameInterface& n)
-    : rpc(r), nc(n), state(NOT_STARTED)
-  {
-    // Nothing more to be done.
-  }
+  explicit NameRegistration (JsonRpc& r, NameInterface& n);
 
   // No default constructor, copying is ok.
 #ifdef CXX_11

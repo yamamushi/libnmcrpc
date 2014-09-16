@@ -21,6 +21,7 @@
 #include "NameRegistration.hpp"
 
 #include <cassert>
+#include <cstdlib>
 #include <memory>
 #include <sstream>
 
@@ -30,11 +31,25 @@ namespace nmcrpc
 /* ************************************************************************** */
 /* Handle registration of a name.  */
 
+/** Name of the envvar to configure firstupdateDelay.  */
+const std::string NameRegistration::FIRSTUPDATEDELAY_VAR
+  = "LIBNMCRPC_FIRSTUPDATE_DELAY";
+
 /**
- * Number of confirmations we want on the name_new transaction before
- * performing name_firstupdate.
+ * Construct it with the given RPC connection.
+ * @param r The RPC connection.
+ * @param n The high-level Namecoin interface.
  */
-const unsigned NameRegistration::FIRSTUPDATE_DELAY = 12;
+NameRegistration::NameRegistration (JsonRpc& r, NameInterface& n)
+  : rpc(r), nc(n), firstupdateDelay(12), state(NOT_STARTED)
+{
+  const char* delay = std::getenv (FIRSTUPDATEDELAY_VAR.c_str ());
+  if (delay)
+    {
+      std::istringstream in(delay);
+      in >> firstupdateDelay;
+    }
+}
 
 /**
  * Start registration of a name with issuing the corresponding name_new
@@ -90,7 +105,7 @@ NameRegistration::canActivate () const
   if (state != REGISTERED)
     return false;
 
-  return (nc.getNumberOfConfirmations (tx) >= FIRSTUPDATE_DELAY);
+  return (nc.getNumberOfConfirmations (tx) >= firstupdateDelay);
 }
 
 /**
