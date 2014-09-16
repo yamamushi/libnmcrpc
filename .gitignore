@@ -17,6 +17,8 @@ stamp-h1
 depcomp
 ltmain.sh
 libtool
+test-driver
+compile
 .deps
 .libs
 *.lo

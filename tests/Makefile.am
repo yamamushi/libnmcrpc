@@ -11,5 +11,5 @@ TESTS = $(check_PROGRAMS)
 basicInfo_SOURCES = basicInfo.cpp
 jsonrpc_SOURCES = jsonrpc.cpp
 messageSigning_SOURCES = messageSigning.cpp
-nameList_SOURCES = nameList.cpp
+#nameList_SOURCES = nameList.cpp
 idn_SOURCES = idn.cpp
